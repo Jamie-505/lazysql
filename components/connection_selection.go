@@ -294,7 +294,7 @@ func (cs *ConnectionSelection) Connect(connection models.Connection) *tview.Appl
 
 	newHome := NewHomePage(connection, newDBDriver)
 	newHome.Tree.SetCurrentNode(newHome.Tree.GetRoot())
-	newHome.Tree.Wrapper.SetTitle(connection.Name)
+	newHome.Tree.Wrapper.SetTitle(treePaneTitle(connection.Name))
 
 	mainPages.AddAndSwitchToPage(connection.Name, newHome, true)
 	App.SetFocus(newHome.Tree)

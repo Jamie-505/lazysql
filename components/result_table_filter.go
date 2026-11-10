@@ -7,6 +7,7 @@ import (
 	"github.com/rivo/tview"
 
 	"github.com/jorgerojas26/lazysql/app"
+	"github.com/jorgerojas26/lazysql/commands"
 	"github.com/jorgerojas26/lazysql/models"
 )
 
@@ -27,6 +28,7 @@ func NewResultsFilter() *ResultsTableFilter {
 	recordsFilter.SetBorder(true)
 	recordsFilter.SetDirection(tview.FlexRowCSS)
 	recordsFilter.SetTitleAlign(tview.AlignCenter)
+	recordsFilter.SetTitle(paneTitle(keyHint(keyLabel(app.TableGroup, commands.Search), "")))
 	recordsFilter.SetBorderPadding(0, 0, 1, 1)
 
 	recordsFilter.Label.SetTextColor(app.Styles.TertiaryTextColor)

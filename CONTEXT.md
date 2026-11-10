@@ -62,6 +62,16 @@ _Avoid_: explain window, explain tab
 A plan produced by `EXPLAIN ANALYZE`, which executes the query. Only offered for read-only statements, and only from inside the **Plan Viewer**.
 _Avoid_: real plan, analyze mode
 
+## Panes
+
+**Input Mode**:
+Whether keys are commands (`NORMAL`) or typed as text (`INSERT`), shown on the border of the focused pane. In `INSERT` the navigation keys of the home view are not available.
+_Avoid_: edit mode, typing mode
+
+**Pane Key**:
+The key that focuses a pane, shown in that pane's border title.
+_Avoid_: shortcut label, hotkey hint
+
 ## Rows
 
 **Row Peek**:

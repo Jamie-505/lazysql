@@ -1031,6 +1031,12 @@ The JSON viewer can be opened by pressing `z` (cell) or `Z` (row) on a table cel
 | y | Copy | Copy value to clipboard |
 | w | ToggleJSONViewerWrap | Toggle word wrap |
 
+#### Pane keys and input mode
+
+The border of each pane shows the key that focuses it: `H` on the tree, `L` on the pane with the tabs (next to `Ctrl-E`, which opens the SQL editor), `/` on the WHERE filter. Rebound keys are shown as configured.
+
+The bottom border of the focused pane shows the input mode. `NORMAL`: keys are commands, including the navigation keys above. `INSERT` (highlighted): keys are typed as text, as in the tree search, the WHERE filter, a cell being edited and the SQL editor's insert mode. `VISUAL`: a selection in the SQL editor.
+
 #### Row Peek
 
 Press `i` on a row to see all its columns top to bottom: name, type and value. The pane underneath shows the full value of the selected column; JSON is indented. The peek is read-only.

@@ -75,7 +75,8 @@ func (u *updateUI) syncLayout() {
 			if width > 2 && height > 1 {
 				tview.Print(screen, tview.Escape(" LazySQL "+u.current+" "), x+1, y+height-1, width-2, tview.AlignRight, app.Styles.TertiaryTextColor)
 			}
-			return home.RightWrapper.GetInnerRect()
+			home.drawModeBadge(screen, home.RightWrapper, x, y, width, height)
+			return x + 1, y + 1, width - 2, height - 2
 		})
 	}
 }
