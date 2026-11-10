@@ -14,8 +14,8 @@ func TestPaneTitlesShowTheirKeys(t *testing.T) {
 	}
 
 	right := rightPaneTitle(false)
-	if !strings.Contains(right, "]L[-]") || !strings.Contains(right, "]Ctrl-E[-] Editor") {
-		t.Errorf("right pane title = %q, want keys L and Ctrl-E", right)
+	if !strings.Contains(right, "]L[-]") || strings.Contains(right, "Ctrl-E") {
+		t.Errorf("right pane title = %q, want only key L", right)
 	}
 	if strings.Contains(right, "READ-ONLY") {
 		t.Errorf("right pane title = %q, want no read-only mark", right)

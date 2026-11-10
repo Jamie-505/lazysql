@@ -60,8 +60,7 @@ func treePaneTitle(connectionName string) string {
 	return paneTitle(keyHint(keyLabel(app.HomeGroup, commands.MoveLeft), connectionName))
 }
 
-// rightPaneTitle is the title of the pane with the tabs: its key, and the
-// key that opens the SQL editor in it.
+// rightPaneTitle is the title of the pane with the tabs: its key.
 func rightPaneTitle(readOnly bool) string {
 	readOnlyHint := ""
 	if readOnly {
@@ -69,7 +68,6 @@ func rightPaneTitle(readOnly bool) string {
 	}
 	return paneTitle(
 		keyHint(keyLabel(app.HomeGroup, commands.MoveRight), ""),
-		keyHint(keyLabel(app.HomeGroup, commands.SwitchToEditorView), "Editor"),
 		readOnlyHint,
 	)
 }
