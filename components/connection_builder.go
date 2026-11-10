@@ -38,7 +38,7 @@ type connectionType struct {
 // "type the URL yourself" entry.
 var connectionTypes = []connectionType{
 	{Provider: drivers.DriverPostgres, Label: "PostgreSQL", DefaultPort: "5432",
-		TLSLabel: "SSL mode", TLSModes: []string{"disable", "require", "verify-ca", "verify-full"}},
+		TLSLabel: "SSL mode", TLSModes: []string{"disable", "allow", "prefer", "require", "verify-ca", "verify-full"}},
 	{Provider: drivers.DriverMySQL, Label: "MySQL / MariaDB", DefaultPort: "3306",
 		TLSLabel: "TLS", TLSModes: []string{"false", "preferred", "skip-verify", "true"}},
 	{Provider: drivers.DriverMSSQL, Label: "SQL Server", DefaultPort: "1433",

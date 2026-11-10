@@ -461,10 +461,12 @@ Encryption options per database type:
 
 | Type | Option | Values | URL parameter |
 | --- | --- | --- | --- |
-| PostgreSQL | SSL mode | `disable` (default), `require`, `verify-ca`, `verify-full` | `sslmode` |
+| PostgreSQL | SSL mode | `disable` (default), `allow`, `prefer`, `require`, `verify-ca`, `verify-full` | `sslmode` |
 | MySQL / MariaDB | TLS | `false` (default), `preferred`, `skip-verify`, `true` | `tls` |
 | SQL Server | Encrypt | `false` (default, login only), `true`, `disable`; plus "Trust server certificate" | `encrypt`, `TrustServerCertificate` |
 | ClickHouse | Secure (TLS) | `false` (default), `true`; plus "Skip certificate verification" | `secure`, `skip_verify` |
+
+For PostgreSQL, `prefer` tries an encrypted connection first and falls back to an unencrypted one; `allow` does the reverse.
 
 SQLite only asks for the database file. Choose "Other" to type a URL yourself (see <a href="#example-connection-urls">example connection URL</a>); anything the form does not offer can also be added to the generated URL in the review step.
 

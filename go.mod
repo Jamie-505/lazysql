@@ -10,7 +10,7 @@ require (
 	github.com/gdamore/tcell/v2 v2.7.4
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/google/uuid v1.6.0
-	github.com/lib/pq v1.10.9
+	github.com/lib/pq v1.12.3
 	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/microsoft/go-mssqldb v1.8.0
 	github.com/mitchellh/go-linereader v0.0.0-20190213213312-1b945b3263eb

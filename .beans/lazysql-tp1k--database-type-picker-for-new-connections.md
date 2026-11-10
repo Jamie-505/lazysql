@@ -22,3 +22,11 @@ Adding a connection meant typing a full URL. Offer a type picker and a details f
 - The existing URL form stays the single place that saves, so keyring storage, read-only and "show all databases" work unchanged. Editing a connection still opens that form directly.
 - Encryption defaults to off for every type; PostgreSQL always writes `sslmode` because the driver's own default is `require`.
 - Tests check that every type and every encryption value produces a URL that parses to the right driver.
+
+## Follow-up: PostgreSQL allow and prefer
+
+- [x] Upgrade github.com/lib/pq from 1.10.9 to 1.12.3, the first line that accepts `sslmode=allow` and `sslmode=prefer`
+- [x] Offer both in the picker
+- [x] Test that the driver accepts every offered mode
+
+1.12.3 was chosen over 1.12.0/1.12.1 because 1.12.2 fixes connections left permanently broken after a partial read. From 1.12.1 the driver reads `~/.pgpass` instead of `~/.postgresql/pgpass`.

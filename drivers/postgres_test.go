@@ -2,11 +2,13 @@ package drivers
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/lib/pq"
@@ -862,5 +864,30 @@ func TestPostgresPendingChangesRejectsMixedDatabases(t *testing.T) {
 	})
 	if err == nil || !strings.Contains(err.Error(), "across databases") {
 		t.Fatalf("mixed-database changes were not rejected before dispatch: %v", err)
+	}
+}
+
+// The connection type picker offers every one of these modes; the driver
+// must accept them rather than reject the URL before connecting.
+func TestPostgresDriverAcceptsEverySSLMode(t *testing.T) {
+	for _, mode := range []string{"disable", "allow", "prefer", "require", "verify-ca", "verify-full"} {
+		t.Run(mode, func(t *testing.T) {
+			// Port 1 refuses connections, so only the URL handling is exercised.
+			conn, err := sql.Open("postgres", "postgres://user@127.0.0.1:1/db?connect_timeout=2&sslmode="+mode)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer conn.Close()
+
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			err = conn.PingContext(ctx)
+			if err == nil {
+				t.Fatal("ping on a closed port succeeded")
+			}
+			if strings.Contains(err.Error(), "sslmode") {
+				t.Fatalf("driver rejected sslmode=%s: %v", mode, err)
+			}
+		})
 	}
 }
