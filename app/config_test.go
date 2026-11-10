@@ -732,3 +732,9 @@ DefaultPageSize = 500
 		t.Errorf("MaxIdleConnections = %d, want %d (default)", App.config.AppConfig.MaxIdleConnections, models.DefaultMaxIdleConnections)
 	}
 }
+
+func TestSidebarDoesNotOpenByDefault(t *testing.T) {
+	if !defaultConfig().AppConfig.DisableSidebar {
+		t.Fatal("DisableSidebar default = false, want the sidebar closed until toggled")
+	}
+}

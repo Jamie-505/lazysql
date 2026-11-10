@@ -30,6 +30,7 @@ func defaultConfig() *Config {
 	return &Config{
 		AppConfig: &models.AppConfig{
 			DefaultPageSize:              300,
+			DisableSidebar:               true,
 			SidebarOverlay:               false,
 			MaxQueryHistoryPerConnection: 100,
 			TreeWidth:                    30,

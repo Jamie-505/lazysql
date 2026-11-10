@@ -21,6 +21,7 @@ func TestPaletteGroupsForFocus(t *testing.T) {
 		{"tree", &Tree{}, []string{app.TreeGroup, app.HomeGroup}},
 		{"table", &ResultsTable{}, []string{app.TableGroup, app.HomeGroup}},
 		{"connections", &ConnectionsTable{}, []string{app.ConnectionGroup}},
+		{"row peek", &rowPeekList{}, []string{app.RowPeekGroup}},
 		{"form field", tview.NewInputField(), nil},
 		{"nothing", nil, nil},
 	}

@@ -178,7 +178,7 @@ DBName = 'foo'
 URL = 'postgres://postgres:urlencodedpassword@localhost:5432/foo'
 [application]
 DefaultPageSize = 300
-DisableSidebar = false
+DisableSidebar = true
 SidebarOverlay = false
 JSONViewerWordWrap = false
 EnterOpensJSONViewer = false
@@ -213,7 +213,7 @@ The `[application]` section is used to define some app settings. Not all setting
 | Setting | Default | Description |
 | ------- | ------- | ----------- |
 | DefaultPageSize | 300 | Number of records to fetch per page |
-| DisableSidebar | false | Disable the sidebar |
+| DisableSidebar | true | Do not open the sidebar automatically when a table loads (`S` still toggles it) |
 | SidebarOverlay | false | Show sidebar as overlay instead of side panel |
 | JSONViewerWordWrap | false | Enable word wrap in JSON viewer |
 | EnterOpensJSONViewer | false | Open JSON viewer when pressing Enter on a cell |
@@ -951,6 +951,7 @@ Available groups: `Home`, `Connection`, `Tree`, `TreeFilter`, `Table`, `Editor`,
 | s | FocusSidebar | Focus sidebar |
 | Z | ShowRowJSONViewer | Toggle JSON viewer for row |
 | z | ShowCellJSONViewer | Toggle JSON viewer for cell |
+| i | PeekRow | Peek row (all columns of the row) |
 | f | ReverseForeignKeyJump | Pick a table referencing the current row and open it filtered |
 | E | ExportCSV | Export to CSV |
 | D | ShowTableDDL | Show table definition (DDL) |
@@ -1029,6 +1030,21 @@ The JSON viewer can be opened by pressing `z` (cell) or `Z` (row) on a table cel
 | z | ShowCellJSONViewer | Toggle JSON viewer |
 | y | Copy | Copy value to clipboard |
 | w | ToggleJSONViewerWrap | Toggle word wrap |
+
+#### Row Peek
+
+Press `i` on a row to see all its columns top to bottom: name, type and value. The pane underneath shows the full value of the selected column; JSON is indented. The peek is read-only.
+
+| Default Key | Command | Description |
+| --- | --- | --- |
+| j | MoveDown | Next column |
+| k | MoveUp | Previous column |
+| g | GotoStart | First column |
+| G | GotoEnd | Last column |
+| y | Copy | Copy value to clipboard |
+| Y | CopyRowsAs | Copy column name and value to clipboard |
+| f | ToggleFullScreen | Toggle full screen |
+| i, q, Esc | PeekRow, Quit | Close row peek |
 
 ### External Editor
 

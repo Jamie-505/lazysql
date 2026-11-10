@@ -856,6 +856,11 @@ func (table *ResultsTable) tableInputCapture(event *tcell.EventKey) *tcell.Event
 		if table.GetShowSidebar() {
 			App.SetFocus(table.Sidebar)
 		}
+	} else if command == commands.PeekRow {
+		if selectedRowIndex > 0 && selectedRowIndex < table.GetRowCount() {
+			showRowPeek(table.rowFields(selectedRowIndex))
+		}
+		return nil
 	} else if command == commands.ShowRowJSONViewer {
 		table.handleShowJSONViewer(commands.ShowRowJSONViewer)
 		return nil
@@ -3235,7 +3240,6 @@ func escapeSingleQuotes(value string) string {
 }
 
 func (table *ResultsTable) UpdateSidebar() {
-	columns := table.GetColumns()
 	selectedRow, _ := table.GetSelection()
 
 	if selectedRow > 0 {
@@ -3246,47 +3250,65 @@ func (table *ResultsTable) UpdateSidebar() {
 
 		table.Sidebar.Clear()
 
-		isRecordsTab := table.Menu == nil || table.Menu.GetSelectedOption() == 1
+		sidebarWidth := table.getSidebarWidth()
 
-		for i := 1; i <= table.GetColumnCount(); i++ {
-			name := table.GetCell(0, i-1).Text
-
-			colType := ""
-			if isRecordsTab && i < len(columns) {
-				colType = columns[i][1]
-			}
-
-			sidebarWidth := table.getSidebarWidth()
-
-			text := cellText(table.GetCell(selectedRow, i-1))
-			title := name
-
-			repeatCount := sidebarWidth - len(name) - len(colType) - 4 // idk why 4 is needed, but it works.
+		for _, field := range table.rowFields(selectedRow) {
+			repeatCount := sidebarWidth - len(field.Name) - len(field.Type) - 4 // idk why 4 is needed, but it works.
 
 			if repeatCount <= 0 {
 				repeatCount = 1
 			}
 
+			title := field.Name
 			title += fmt.Sprintf("[%s]", app.Styles.SidebarTitleBorderColor) + strings.Repeat("-", repeatCount)
-			title += colType
+			title += field.Type
 
-			pendingEditExist := false
-
-			for _, dmlChange := range *table.state.listOfDBChanges {
-				if dmlChange.Type == models.DMLUpdateType {
-					for _, v := range dmlChange.Values {
-						if v.Column == name && v.TableRowIndex == selectedRow && v.TableColumnIndex == i-1 {
-							pendingEditExist = true
-							break
-						}
-					}
-				}
-			}
-
-			table.Sidebar.AddField(title, text, sidebarWidth, pendingEditExist)
+			table.Sidebar.AddField(title, field.Value, sidebarWidth, field.Pending)
 		}
 
 	}
+}
+
+// rowField is one column of a row: its name, type and the value shown in
+// the grid.
+type rowField struct {
+	Name  string
+	Type  string
+	Value string
+	// Pending is true when the value is an edit that is not saved yet.
+	Pending bool
+}
+
+// rowFields returns the columns of a grid row in display order. Types are
+// only known on the records tab.
+func (table *ResultsTable) rowFields(row int) []rowField {
+	columns := table.GetColumns()
+	isRecordsTab := table.Menu == nil || table.Menu.GetSelectedOption() == 1
+
+	fields := make([]rowField, 0, table.GetColumnCount())
+	for i := 1; i <= table.GetColumnCount(); i++ {
+		field := rowField{
+			Name:  table.GetCell(0, i-1).Text,
+			Value: cellText(table.GetCell(row, i-1)),
+		}
+		if isRecordsTab && i < len(columns) {
+			field.Type = columns[i][1]
+		}
+		if table.state != nil && table.state.listOfDBChanges != nil {
+			for _, dmlChange := range *table.state.listOfDBChanges {
+				if dmlChange.Type != models.DMLUpdateType {
+					continue
+				}
+				for _, v := range dmlChange.Values {
+					if v.Column == field.Name && v.TableRowIndex == row && v.TableColumnIndex == i-1 {
+						field.Pending = true
+					}
+				}
+			}
+		}
+		fields = append(fields, field)
+	}
+	return fields
 }
 
 func (table *ResultsTable) getSidebarWidth() int {

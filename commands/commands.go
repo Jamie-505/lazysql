@@ -109,6 +109,8 @@ const (
 	ShowTableDDL
 	ServerInfo
 	ActionsPalette
+	PeekRow
+	ToggleFullScreen
 )
 
 func (c Command) String() string {
@@ -287,6 +289,10 @@ func (c Command) String() string {
 		return "ServerInfo"
 	case ActionsPalette:
 		return "ActionsPalette"
+	case PeekRow:
+		return "PeekRow"
+	case ToggleFullScreen:
+		return "ToggleFullScreen"
 	}
 
 	return "Unknown"

@@ -62,6 +62,12 @@ _Avoid_: explain window, explain tab
 A plan produced by `EXPLAIN ANALYZE`, which executes the query. Only offered for read-only statements, and only from inside the **Plan Viewer**.
 _Avoid_: real plan, analyze mode
 
+## Rows
+
+**Row Peek**:
+Read-only modal that lists every column of one row top to bottom, with the full value of the selected column underneath.
+_Avoid_: row details, row viewer, peeker
+
 ## Commands
 
 **Actions Palette**:

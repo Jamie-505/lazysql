@@ -54,6 +54,7 @@ const (
 	QueryHistoryGroup = "queryhistory"
 	TabbedMenuGroup   = "tabbedmenu"
 	JSONViewerGroup   = "jsonviewer"
+	RowPeekGroup      = "rowpeek"
 )
 
 // Define a global KeymapSystem object with default keybinds
@@ -150,6 +151,7 @@ var Keymaps = KeymapSystem{
 			Bind{Key: Key{Char: 's'}, Cmd: cmd.FocusSidebar, Description: "Focus sidebar"},
 			Bind{Key: Key{Char: 'Z'}, Cmd: cmd.ShowRowJSONViewer, Description: "Toggle JSON viewer for row"},
 			Bind{Key: Key{Char: 'z'}, Cmd: cmd.ShowCellJSONViewer, Description: "Toggle JSON viewer for cell"},
+			Bind{Key: Key{Char: 'i'}, Cmd: cmd.PeekRow, Description: "Peek row (all columns of the row)"},
 			// Foreign keys
 			Bind{Key: Key{Char: 'f'}, Cmd: cmd.ReverseForeignKeyJump, Description: "Jump to a table referencing the current row"},
 			// Export
@@ -201,6 +203,17 @@ var Keymaps = KeymapSystem{
 			Bind{Key: Key{Char: 'z'}, Cmd: cmd.ShowCellJSONViewer, Description: "Toggle JSON viewer"},
 			Bind{Key: Key{Char: 'y'}, Cmd: cmd.Copy, Description: "Copy value to clipboard"},
 			Bind{Key: Key{Char: 'w'}, Cmd: cmd.ToggleJSONViewerWrap, Description: "Toggle word wrap"},
+		},
+		RowPeekGroup: {
+			Bind{Key: Key{Char: 'j'}, Cmd: cmd.MoveDown, Description: "Next column"},
+			Bind{Key: Key{Char: 'k'}, Cmd: cmd.MoveUp, Description: "Previous column"},
+			Bind{Key: Key{Char: 'g'}, Cmd: cmd.GotoStart, Description: "First column"},
+			Bind{Key: Key{Char: 'G'}, Cmd: cmd.GotoEnd, Description: "Last column"},
+			Bind{Key: Key{Char: 'y'}, Cmd: cmd.Copy, Description: "Copy value to clipboard"},
+			Bind{Key: Key{Char: 'Y'}, Cmd: cmd.CopyRowsAs, Description: "Copy column name and value to clipboard"},
+			Bind{Key: Key{Char: 'f'}, Cmd: cmd.ToggleFullScreen, Description: "Toggle full screen"},
+			Bind{Key: Key{Char: 'i'}, Cmd: cmd.PeekRow, Description: "Close row peek"},
+			Bind{Key: Key{Char: 'q'}, Cmd: cmd.Quit, Description: "Close row peek"},
 		},
 	},
 }

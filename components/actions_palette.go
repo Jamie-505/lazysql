@@ -33,6 +33,8 @@ func paletteGroupsForFocus(focus tview.Primitive) []string {
 		return []string{app.TableGroup, app.HomeGroup}
 	case *ConnectionsTable:
 		return []string{app.ConnectionGroup}
+	case *rowPeekList:
+		return []string{app.RowPeekGroup}
 	}
 	return nil
 }

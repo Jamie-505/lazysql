@@ -14,6 +14,7 @@ const (
 	pageNameExplain        string = "Explain"
 	pageNameTableDDL       string = "TableDDL"
 	pageNameServerInfo     string = "ServerInfo"
+	pageNameRowPeek        string = "RowPeek"
 	pageNameActionsPalette string = "ActionsPalette"
 	pageNameConfirmation   string = "Confirmation"
 	pageNameConnections    string = "Connections"
