@@ -452,8 +452,21 @@ To launch lazysql in read-only mode.
 
 1. Start `lazysql`
 2. Create a new connection (press `n`)
-3. Provide a name for the connection as well as the URL to connect to (see <a href="#example-connection-urls">example connection URL</a>)
-4. Connect to the DB (press `<Enter>`)
+3. Choose the database type (`j`/`k` and `<Enter>`, or its number)
+4. Fill in host, port, user, password and database, and pick the encryption option. Press `F1` or choose `Continue`
+5. Review the generated URL, test it with `F2`, save it with `F1`
+6. Connect to the DB (press `<Enter>`)
+
+Encryption options per database type:
+
+| Type | Option | Values | URL parameter |
+| --- | --- | --- | --- |
+| PostgreSQL | SSL mode | `disable` (default), `require`, `verify-ca`, `verify-full` | `sslmode` |
+| MySQL / MariaDB | TLS | `false` (default), `preferred`, `skip-verify`, `true` | `tls` |
+| SQL Server | Encrypt | `false` (default, login only), `true`, `disable`; plus "Trust server certificate" | `encrypt`, `TrustServerCertificate` |
+| ClickHouse | Secure (TLS) | `false` (default), `true`; plus "Skip certificate verification" | `secure`, `skip_verify` |
+
+SQLite only asks for the database file. Choose "Other" to type a URL yourself (see <a href="#example-connection-urls">example connection URL</a>); anything the form does not offer can also be added to the generated URL in the review step.
 
 If you already have a connection set up:
 1. Start `lazysql`

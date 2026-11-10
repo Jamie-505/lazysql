@@ -136,7 +136,8 @@ func NewConnectionSelection(connectionForm *ConnectionForm, connectionPages *mod
 			connectionForm.GetFormItemByLabel("Read-Only").(*tview.Checkbox).SetChecked(false)
 			connectionForm.GetFormItemByLabel("Show all databases in this instance").(*tview.Checkbox).SetChecked(false)
 			connectionForm.StatusText.SetText("")
-			connectionPages.SwitchToPage(pageNameConnectionForm)
+			// Start with the database type; the form is the last step.
+			connectionPages.SwitchToPage(pageNameConnectionType)
 		case commands.Quit:
 			if wrapper.HasFocus() {
 				showQuitConfirmation()

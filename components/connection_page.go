@@ -50,6 +50,7 @@ func NewConnectionPages() *models.ConnectionPages {
 
 	cp.AddPage(pageNameConnectionSelection, connectionSelection.Flex, true, true)
 	cp.AddPage(pageNameConnectionForm, connectionForm.Flex, true, false)
+	addConnectionTypePages(cp, connectionForm)
 
 	return cp
 }

@@ -36,6 +36,8 @@ const (
 	// Connections
 	pageNameConnectionSelection string = "ConnectionSelection"
 	pageNameConnectionForm      string = "ConnectionForm"
+	pageNameConnectionType      string = "ConnectionType"
+	pageNameConnectionBuilder   string = "ConnectionBuilder"
 
 	// SetValueList
 	pageNameSetValue string = "SetValue"
