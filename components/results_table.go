@@ -690,6 +690,14 @@ func (table *ResultsTable) tableInputCapture(event *tcell.EventKey) *tcell.Event
 		return nil
 	}
 
+	if command == commands.ShowTableDDL {
+		// Editor results have no table behind them.
+		if tableName := table.GetTableName(); tableName != "" {
+			showTableDDL(table.DBDriver, table.GetDatabaseName(), tableName)
+		}
+		return nil
+	}
+
 	menuCommands := []commands.Command{commands.RecordsMenu, commands.ColumnsMenu, commands.ConstraintsMenu, commands.ForeignKeysMenu, commands.IndexesMenu}
 
 	if helpers.ContainsCommand(menuCommands, command) {

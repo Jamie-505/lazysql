@@ -695,6 +695,11 @@ func (home *Home) homeInputCapture(event *tcell.EventKey) *tcell.EventKey {
 
 		home.QueryHistoryModal.queryHistoryComponent.LoadHistory(home.ConnectionIdentifier)
 		return nil
+	case commands.ServerInfo:
+		if table == nil || (!table.GetIsEditing() && !table.GetIsFiltering()) {
+			showServerInfo(home.DBDriver, home.ConnectionIdentifier)
+			return nil
+		}
 	case commands.ToggleTree:
 		if table != nil && !table.GetIsEditing() && !table.GetIsFiltering() {
 			home.toggleLeftWrapper()

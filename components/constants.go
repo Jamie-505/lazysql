@@ -12,6 +12,8 @@ const (
 	pageNameHelp          string = "Help"
 	pageNameThemePicker   string = "ThemePicker"
 	pageNameExplain       string = "Explain"
+	pageNameTableDDL      string = "TableDDL"
+	pageNameServerInfo    string = "ServerInfo"
 	pageNameConfirmation  string = "Confirmation"
 	pageNameConnections   string = "Connections"
 	pageNameDMLPreview    string = "DMLPreview"

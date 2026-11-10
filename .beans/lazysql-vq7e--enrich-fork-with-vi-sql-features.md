@@ -14,5 +14,5 @@ Port the useful parts of vi-sql into this fork.
 - [x] Keyring passwords (lazysql-k3yr)
 - [x] Plan Viewer (EXPLAIN) (lazysql-xp1n)
 - [x] SQL formatter (lazysql-f0rm)
-- [ ] Table DDL and server info
+- [x] Table DDL and server info (lazysql-dd1s)
 - [ ] Actions Palette

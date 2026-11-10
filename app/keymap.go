@@ -77,6 +77,7 @@ var Keymaps = KeymapSystem{
 			Bind{Key: Key{Char: '+'}, Cmd: cmd.WidenTree, Description: "Widen tree"},
 			Bind{Key: Key{Char: '='}, Cmd: cmd.WidenTree, Description: "Widen tree"},
 			Bind{Key: Key{Char: '-'}, Cmd: cmd.NarrowTree, Description: "Narrow tree"},
+			Bind{Key: Key{Char: 'I'}, Cmd: cmd.ServerInfo, Description: "Server information"},
 		},
 		ConnectionGroup: {
 			Bind{Key: Key{Char: 'n'}, Cmd: cmd.NewConnection, Description: "Create a new database connection"},
@@ -152,6 +153,7 @@ var Keymaps = KeymapSystem{
 			Bind{Key: Key{Char: 'f'}, Cmd: cmd.ReverseForeignKeyJump, Description: "Jump to a table referencing the current row"},
 			// Export
 			Bind{Key: Key{Char: 'E'}, Cmd: cmd.ExportCSV, Description: "Export to CSV"},
+			Bind{Key: Key{Char: 'D'}, Cmd: cmd.ShowTableDDL, Description: "Show table definition (DDL)"},
 			// External editor
 			Bind{Key: Key{Char: 'e'}, Cmd: cmd.OpenCellInExternalEditor, Description: "Edit cell in external editor"},
 			// Foreign keys

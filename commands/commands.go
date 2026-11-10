@@ -104,6 +104,10 @@ const (
 	// SQL editor
 	ExplainQuery
 	FormatQuery
+
+	// Inspection
+	ShowTableDDL
+	ServerInfo
 )
 
 func (c Command) String() string {
@@ -276,6 +280,10 @@ func (c Command) String() string {
 		return "ExplainQuery"
 	case FormatQuery:
 		return "FormatQuery"
+	case ShowTableDDL:
+		return "ShowTableDDL"
+	case ServerInfo:
+		return "ServerInfo"
 	}
 
 	return "Unknown"

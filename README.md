@@ -666,6 +666,14 @@ Notes:
 
 This works in both records tables and SQL editor results. `y` is unchanged: it copies marked rows as tab-separated values, or the selected cell when no rows are marked. Marks are cleared when results reload.
 
+### Table definition and server information
+
+Press `D` on an open table to see its `CREATE` statement. `y` copies it, `q`/`Esc` closes.
+
+MySQL, SQLite and ClickHouse report the statement themselves. PostgreSQL and SQL Server have no such command, so lazysql rebuilds it from the catalog. That version is for reading: it is not an exact dump (on SQL Server it lists columns and the primary key only).
+
+Press `I` (outside the editor) to see the server version, current user, database and similar facts for the connection.
+
 ### Export to CSV
 
 #### From Table View
@@ -837,6 +845,7 @@ Available groups: `Home`, `Connection`, `Tree`, `TreeFilter`, `Table`, `Editor`,
 | Ctrl-P | SearchGlobal | Global search |
 | Ctrl-_ | ToggleQueryHistory | Toggle query history modal |
 | T | ToggleTree | Toggle file tree |
+| I | ServerInfo | Server information |
 
 #### Connection
 
@@ -919,6 +928,7 @@ Available groups: `Home`, `Connection`, `Tree`, `TreeFilter`, `Table`, `Editor`,
 | z | ShowCellJSONViewer | Toggle JSON viewer for cell |
 | f | ReverseForeignKeyJump | Pick a table referencing the current row and open it filtered |
 | E | ExportCSV | Export to CSV |
+| D | ShowTableDDL | Show table definition (DDL) |
 | e | OpenCellInExternalEditor | Edit cell in external editor |
 
 > `Enter` (`ForeignKeyJump`) only applies on the record tab (`1`) of a table view. It is part of the `Table` group, so it can be remapped like any other keybinding: `[keymap.Table] ForeignKeyJump = "Ctrl-G"`.
