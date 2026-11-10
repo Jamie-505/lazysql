@@ -1,6 +1,7 @@
 package components
 
 import (
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 
 	"github.com/jorgerojas26/lazysql/models"
@@ -13,18 +14,18 @@ func NewConnectionPages() *models.ConnectionPages {
 
 	// Create a grid for both small and large screens
 	smallScreenGrid := tview.NewGrid().
-		SetRows(1, 0, 1).    // Top, center, and bottom rows (center is flexible)
-		SetColumns(1, 0, 1). // Left, center, and right columns (center is flexible)
-		SetMinSize(1, 1)     // Minimum cell size
+		SetRows(0, connectionWindowMinHeight, 0). // Top margin, center height (set while drawing), bottom margin
+		SetColumns(1, 0, 1).                      // Left, center, and right columns (center is flexible)
+		SetMinSize(1, 1)                          // Minimum cell size
 
-	// Add pages to the small screen grid (with small margins)
-	smallScreenGrid.AddItem(pages, 0, 0, 3, 3, 0, 0, true)
+	// Add pages to the center of the small screen grid (with small side margins)
+	smallScreenGrid.AddItem(pages, 1, 1, 1, 1, 0, 0, true)
 
 	// Create a grid specifically for large screens with a more compact center box
 	largeScreenGrid := tview.NewGrid().
-		SetRows(0, 20, 0).    // Top margin, fixed center height, bottom margin
-		SetColumns(0, 70, 0). // Left margin, fixed center width, right margin
-		SetMinSize(1, 1)      // Minimum cell size
+		SetRows(0, connectionWindowMinHeight, 0). // Top margin, center height (set while drawing), bottom margin
+		SetColumns(0, 70, 0).                     // Left margin, fixed center width, right margin
+		SetMinSize(1, 1)                          // Minimum cell size
 
 	// Add pages to the center of large screen grid
 	largeScreenGrid.AddItem(pages, 1, 1, 1, 1, 0, 0, true)
@@ -50,7 +51,22 @@ func NewConnectionPages() *models.ConnectionPages {
 
 	cp.AddPage(pageNameConnectionSelection, connectionSelection.Flex, true, true)
 	cp.AddPage(pageNameConnectionForm, connectionForm.Flex, true, false)
-	addConnectionTypePages(cp, connectionForm)
+	builder := addConnectionTypePages(cp, connectionForm)
+
+	// The window grows for pages with more fields than the standard height
+	// shows. The height is set while drawing, when the screen size is known.
+	fitHeight := func(grid *tview.Grid) {
+		grid.SetDrawFunc(func(_ tcell.Screen, x, y, width, height int) (int, int, int, int) {
+			contentHeight := 0
+			if name, _ := pages.GetFrontPage(); name == pageNameConnectionBuilder {
+				contentHeight = builder.Height()
+			}
+			grid.SetRows(0, connectionWindowHeight(contentHeight, height), 0)
+			return x, y, width, height
+		})
+	}
+	fitHeight(smallScreenGrid)
+	fitHeight(largeScreenGrid)
 
 	return cp
 }

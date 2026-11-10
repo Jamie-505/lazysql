@@ -331,10 +331,33 @@ func (builder *ConnectionBuilder) finish() {
 	builder.onDone(strings.TrimSpace(builder.inputText(builderLabelName)), connectionURL)
 }
 
+// Height is the number of rows the builder needs to show every field of the
+// selected type without scrolling.
+func (builder *ConnectionBuilder) Height() int {
+	// A form row is one line plus one line of spacing; then the button row
+	// and the form's top and bottom padding.
+	formHeight := 2*builder.Form.GetFormItemCount() + 3
+	const header, status, hint = 1, 3, 1
+	return header + formHeight + status + hint
+}
+
+// connectionWindowHeight returns the height of the connection window: enough
+// for the content, never less than the standard height, and at most 95% of
+// the screen.
+func connectionWindowHeight(contentHeight, screenHeight int) int {
+	const border = 2
+	height := max(contentHeight+border, connectionWindowMinHeight)
+	return max(min(height, screenHeight*95/100), 1)
+}
+
+// connectionWindowMinHeight is the height the connection list and URL form
+// have always used.
+const connectionWindowMinHeight = 20
+
 // addConnectionTypePages adds the type picker and details pages in front of
 // the connection form, which stays the place where a connection is reviewed,
-// tested and saved.
-func addConnectionTypePages(pages *models.ConnectionPages, form *ConnectionForm) {
+// tested and saved. It returns the details page.
+func addConnectionTypePages(pages *models.ConnectionPages, form *ConnectionForm) *ConnectionBuilder {
 	builder := NewConnectionBuilder(func(name, connectionURL string) {
 		form.GetFormItemByLabel("Name").(*tview.InputField).SetText(name)
 		form.GetFormItemByLabel("URL").(*tview.InputField).SetText(connectionURL)
@@ -359,4 +382,5 @@ func addConnectionTypePages(pages *models.ConnectionPages, form *ConnectionForm)
 
 	pages.AddPage(pageNameConnectionType, picker, true, false)
 	pages.AddPage(pageNameConnectionBuilder, builder, true, false)
+	return builder
 }
