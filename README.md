@@ -82,6 +82,10 @@ I use Lazysql daily in my full-time job as a full-stack javascript developer in 
 - [x] Can manage multiple connections (Backspace)
 - [x] Tabs
 - [x] SQL Editor (CTRL + e)
+- [x] Actions palette (CTRL + o)
+- [x] Query plan viewer (CTRL + x) and SQL formatter (CTRL + f) in the editor
+- [x] Passwords stored in the system keyring
+- [x] Transparent themes
 
 <!-- GETTING STARTED -->
 
@@ -665,6 +669,12 @@ Notes:
 3. Press `Y` while selecting a range to copy it directly, without committing marks. Otherwise, `Y` copies marked rows or, with no marks, the current row. Choose SQL (`s`), Markdown (`m`), JSON (`j`), or CSV (`c`). CSV and Markdown include column headers; JSON is an array of objects. SQL produces an `INSERT` in a records table, or a standalone `VALUES` statement in SQL editor results (which have no target table).
 
 This works in both records tables and SQL editor results. `y` is unchanged: it copies marked rows as tab-separated values, or the selected cell when no rows are marked. Marks are cleared when results reload.
+
+### Actions palette
+
+Press `<Ctrl+O>` anywhere to list the actions available where you are (tree, table, editor or connection list), each with its key. Type to filter, move with the arrow keys or `Ctrl+N`/`Ctrl+P`, press `Enter` to run the action and `Esc` to close.
+
+Running an action from the palette is the same as pressing its key. Rebind it with `[keymap.Global] ActionsPalette = "..."`.
 
 ### Table definition and server information
 

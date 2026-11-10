@@ -61,3 +61,9 @@ _Avoid_: explain window, explain tab
 **Measured Plan**:
 A plan produced by `EXPLAIN ANALYZE`, which executes the query. Only offered for read-only statements, and only from inside the **Plan Viewer**.
 _Avoid_: real plan, analyze mode
+
+## Commands
+
+**Actions Palette**:
+Searchable list of the keybindings that apply to the focused surface. Choosing an entry replays its key.
+_Avoid_: command palette, command menu

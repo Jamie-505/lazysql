@@ -95,6 +95,7 @@ func MainPages() *tview.Pages {
 	// Show global dialogs from application-level shortcuts and signals.
 	app.App.SetOnQuitRequest(showQuitConfirmation)
 	app.App.SetOnThemePickerRequest(showThemePicker)
+	app.App.OnActionsPaletteRequest = showActionsPalette
 
 	return mainPages
 }

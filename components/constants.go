@@ -9,16 +9,17 @@ var App = app.App
 // Pages
 const (
 	// General
-	pageNameHelp          string = "Help"
-	pageNameThemePicker   string = "ThemePicker"
-	pageNameExplain       string = "Explain"
-	pageNameTableDDL      string = "TableDDL"
-	pageNameServerInfo    string = "ServerInfo"
-	pageNameConfirmation  string = "Confirmation"
-	pageNameConnections   string = "Connections"
-	pageNameDMLPreview    string = "DMLPreview"
-	pageNameErrorModal    string = "ErrorModal"
-	pageNameReadOnlyError string = "readOnlyError"
+	pageNameHelp           string = "Help"
+	pageNameThemePicker    string = "ThemePicker"
+	pageNameExplain        string = "Explain"
+	pageNameTableDDL       string = "TableDDL"
+	pageNameServerInfo     string = "ServerInfo"
+	pageNameActionsPalette string = "ActionsPalette"
+	pageNameConfirmation   string = "Confirmation"
+	pageNameConnections    string = "Connections"
+	pageNameDMLPreview     string = "DMLPreview"
+	pageNameErrorModal     string = "ErrorModal"
+	pageNameReadOnlyError  string = "readOnlyError"
 
 	// Results table
 	pageNameTable                  string = "Table"

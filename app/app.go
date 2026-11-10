@@ -35,6 +35,9 @@ type Application struct {
 
 	onThemePickerRequestMu sync.RWMutex
 	onThemePickerRequest   func()
+
+	// Set once at startup; invoked only on the UI event loop.
+	OnActionsPaletteRequest func()
 }
 
 func init() {
@@ -192,6 +195,12 @@ func (a *Application) register() {
 		if Keymaps.Resolve(event) == commands.CheckForUpdates {
 			if a.OnUpdateRequest != nil {
 				a.OnUpdateRequest()
+			}
+			return nil
+		}
+		if Keymaps.Resolve(event) == commands.ActionsPalette {
+			if a.OnActionsPaletteRequest != nil {
+				a.OnActionsPaletteRequest()
 			}
 			return nil
 		}

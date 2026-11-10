@@ -108,6 +108,7 @@ const (
 	// Inspection
 	ShowTableDDL
 	ServerInfo
+	ActionsPalette
 )
 
 func (c Command) String() string {
@@ -284,6 +285,8 @@ func (c Command) String() string {
 		return "ShowTableDDL"
 	case ServerInfo:
 		return "ServerInfo"
+	case ActionsPalette:
+		return "ActionsPalette"
 	}
 
 	return "Unknown"
