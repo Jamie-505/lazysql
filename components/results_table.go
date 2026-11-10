@@ -30,6 +30,7 @@ import (
 )
 
 type ResultsTableState struct {
+	gridColor                 tcell.Color // color of the grid lines, see ResultsTable.Draw
 	listOfDBChanges           *[]models.DBDMLChange
 	error                     string
 	currentSort               string
@@ -1029,6 +1030,7 @@ func (table *ResultsTable) shouldShowForeignKeyHeaderMarker(columnIndex int) boo
 func (table *ResultsTable) RemoveHighlightTable() {
 	table.SetBorderColor(app.Styles.InverseTextColor)
 	table.SetBordersColor(app.Styles.InverseTextColor)
+	table.state.gridColor = app.Styles.InverseTextColor
 	table.SetTitleColor(app.Styles.InverseTextColor)
 	table.UpdateRowsColor(app.Styles.InverseTextColor, tview.Styles.InverseTextColor)
 }
@@ -1046,6 +1048,7 @@ func (table *ResultsTable) RemoveHighlightAll() {
 func (table *ResultsTable) HighlightTable() {
 	table.SetBorderColor(app.Styles.PrimaryTextColor)
 	table.SetBordersColor(app.Styles.PrimaryTextColor)
+	table.state.gridColor = app.Styles.PrimaryTextColor
 	table.SetTitleColor(app.Styles.PrimaryTextColor)
 	table.UpdateRowsColor(app.Styles.PrimaryTextColor, tview.Styles.PrimaryTextColor)
 }
