@@ -228,9 +228,10 @@ func NewConnectionBuilder(onDone func(name, connectionURL string), onCancel func
 		Flex: tview.NewFlex().SetDirection(tview.FlexRow),
 		Form: tview.NewForm().
 			SetFieldBackgroundColor(app.Styles.InverseTextColor).
-			SetButtonBackgroundColor(tview.Styles.InverseTextColor).
-			SetLabelColor(tview.Styles.PrimaryTextColor).
-			SetFieldTextColor(tview.Styles.ContrastSecondaryTextColor),
+			SetLabelColor(app.Styles.PrimaryTextColor).
+			SetFieldTextColor(app.Styles.ContrastSecondaryTextColor).
+			SetButtonStyle(builderFieldStyle()).
+			SetButtonActivatedStyle(builderSelectedStyle()),
 		StatusText: tview.NewTextView(),
 		header:     tview.NewTextView(),
 		onDone:     onDone,
@@ -285,6 +286,9 @@ func (builder *ConnectionBuilder) SetType(selected connectionType) {
 		form.AddInputField(builderLabelDatabase, "", 0, nil, nil)
 		if len(selected.TLSModes) > 0 {
 			form.AddDropDown(selected.TLSLabel, selected.TLSModes, 0, nil)
+			if dropDown, ok := form.GetFormItemByLabel(selected.TLSLabel).(*tview.DropDown); ok {
+				dropDown.SetListStyles(builderFieldStyle(), builderSelectedStyle())
+			}
 		}
 		if selected.VerifyLabel != "" {
 			form.AddCheckbox(selected.VerifyLabel, false, nil)
@@ -329,6 +333,22 @@ func (builder *ConnectionBuilder) finish() {
 		return
 	}
 	builder.onDone(strings.TrimSpace(builder.inputText(builderLabelName)), connectionURL)
+}
+
+// builderFieldStyle is the look of a field, an unfocused button and an
+// unselected dropdown option.
+func builderFieldStyle() tcell.Style {
+	return tcell.StyleDefault.
+		Background(app.Styles.InverseTextColor).
+		Foreground(app.Styles.ContrastSecondaryTextColor)
+}
+
+// builderSelectedStyle is the look of the focused button and the selected
+// dropdown option. It matches the selected row of the type picker.
+func builderSelectedStyle() tcell.Style {
+	return tcell.StyleDefault.
+		Background(app.Styles.SecondaryTextColor).
+		Foreground(app.Styles.ContrastSecondaryTextColor)
 }
 
 // Height is the number of rows the builder needs to show every field of the
