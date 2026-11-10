@@ -100,6 +100,9 @@ const (
 	ForeignKeyJump
 
 	ColumnVisibility
+
+	// SQL editor
+	ExplainQuery
 )
 
 func (c Command) String() string {
@@ -268,6 +271,8 @@ func (c Command) String() string {
 		return "ForeignKeyJump"
 	case ColumnVisibility:
 		return "ColumnVisibility"
+	case ExplainQuery:
+		return "ExplainQuery"
 	}
 
 	return "Unknown"

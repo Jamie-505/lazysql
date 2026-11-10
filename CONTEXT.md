@@ -51,3 +51,13 @@ _Avoid_: see-through mode, no-background preset
 **Keyring Password**:
 A connection password held in the operating system keyring under the connection's `Keyring` account. The config file stores the URL without it; it is added at connect time.
 _Avoid_: encrypted password, secret placeholder
+
+## Query plans
+
+**Plan Viewer**:
+Modal that shows the database's plan for one SQL editor query. Opening it never executes the query.
+_Avoid_: explain window, explain tab
+
+**Measured Plan**:
+A plan produced by `EXPLAIN ANALYZE`, which executes the query. Only offered for read-only statements, and only from inside the **Plan Viewer**.
+_Avoid_: real plan, analyze mode

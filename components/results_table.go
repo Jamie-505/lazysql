@@ -1086,6 +1086,14 @@ func (table *ResultsTable) subscribeToEditorChanges() {
 
 	for stateChange := range ch {
 		switch stateChange.Key {
+		case eventSQLEditorExplain:
+			query := stateChange.Value.(string)
+			if strings.TrimSpace(query) == "" {
+				continue
+			}
+			App.QueueUpdateDraw(func() {
+				showExplainModal(table.DBDriver, table.GetDatabaseName(), query)
+			})
 		case eventSQLEditorQuery:
 			query := stateChange.Value.(string)
 			if strings.TrimSpace(query) == "" {

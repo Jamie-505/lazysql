@@ -11,6 +11,7 @@ const (
 	// General
 	pageNameHelp          string = "Help"
 	pageNameThemePicker   string = "ThemePicker"
+	pageNameExplain       string = "Explain"
 	pageNameConfirmation  string = "Confirmation"
 	pageNameConnections   string = "Connections"
 	pageNameDMLPreview    string = "DMLPreview"
@@ -66,8 +67,9 @@ const (
 	eventSidebarCommitEditing string = "CommitEditingSidebar"
 	eventSidebarError         string = "ErrorSidebar"
 
-	eventSQLEditorQuery  string = "Query"
-	eventSQLEditorEscape string = "Escape"
+	eventSQLEditorQuery   string = "Query"
+	eventSQLEditorExplain string = "Explain"
+	eventSQLEditorEscape  string = "Escape"
 
 	eventResultsTableFiltering string = "FilteringResultsTable"
 

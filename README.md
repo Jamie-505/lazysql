@@ -476,6 +476,29 @@ You can update the tree by pressing `R`, so you can see your newly created table
 > with the query-result. \
 > To switch focus back to SQL-Editor press `/`
 
+### Explain a query (Plan Viewer)
+
+Press `<Ctrl+X>` in the SQL Editor to see the plan of the query without running it. In visual mode only the selected text is explained.
+
+| Database | Plan shown |
+| --- | --- |
+| PostgreSQL | Tree of plan nodes with cost and estimated rows (`EXPLAIN (FORMAT JSON)`) |
+| MySQL | `EXPLAIN FORMAT=TREE`; the classic table on MariaDB and older MySQL |
+| SQLite | `EXPLAIN QUERY PLAN`, indented by nesting |
+| SQL Server | Estimated plan (`SET SHOWPLAN_TEXT ON`) |
+| ClickHouse | `EXPLAIN` |
+
+Keys inside the viewer:
+
+| Key | Action |
+| --- | --- |
+| `a` | Toggle `ANALYZE`: runs the query and shows measured rows, loops and time (PostgreSQL and MySQL) |
+| `y` | Copy the plan |
+| `Enter` | Fold or unfold a node (PostgreSQL) |
+| `q` / `Esc` | Close |
+
+`ANALYZE` executes the query, so it is only offered for read-only `SELECT` statements. A query you already wrote as `EXPLAIN ...` is explained once, not twice.
+
 ### Result and network semantics
 
 Records pages are fetched with one page of rows plus a lookahead row. The
@@ -901,6 +924,7 @@ Available groups: `Home`, `Connection`, `Tree`, `TreeFilter`, `Table`, `Editor`,
 | Ctrl-R | Execute | Execute query |
 | Esc | CancelQuery | Cancel the active query; otherwise preserve normal editor Escape behavior |
 | Ctrl-Space | OpenInExternalEditor | Open in external editor |
+| Ctrl-X | ExplainQuery | Explain query (plan viewer) |
 
 Specific editor for lazysql can be set by `$SQL_EDITOR`.
 

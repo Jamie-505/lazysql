@@ -12,7 +12,7 @@ Port the useful parts of vi-sql into this fork.
 
 - [x] Transparent theme toggle (lazysql-tr4n)
 - [x] Keyring passwords (lazysql-k3yr)
-- [ ] Plan Viewer (EXPLAIN)
+- [x] Plan Viewer (EXPLAIN) (lazysql-xp1n)
 - [ ] SQL formatter
 - [ ] Table DDL and server info
 - [ ] Actions Palette

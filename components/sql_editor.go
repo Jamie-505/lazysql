@@ -269,6 +269,18 @@ func (e *SQLEditor) InputHandler() func(event *tcell.EventKey, setFocus func(p t
 		if (event.Key() == tcell.KeyEscape || cmd == commands.CancelQuery) && e.cancelQuery != nil && e.cancelQuery() {
 			return
 		}
+		if cmd == commands.ExplainQuery {
+			e.acVisible = false
+			query := e.GetText()
+			if e.vimMode == VimModeVisual || e.vimMode == VimModeVisualLine {
+				// Explain just the selected statement.
+				if selected := e.getSelectedText(); strings.TrimSpace(selected) != "" {
+					query = selected
+				}
+			}
+			e.Publish(eventSQLEditorExplain, query)
+			return
+		}
 		if cmd == commands.OpenInExternalEditor {
 			if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
 				var newText string
