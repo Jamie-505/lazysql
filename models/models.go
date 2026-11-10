@@ -26,12 +26,15 @@ type AppConfig struct {
 	JSONViewerWordWrap           bool
 	EnterOpensJSONViewer         bool
 	ConfirmOnQuit                bool
-	MaxOpenConnections           int `toml:"max_open_connections"`
-	MaxIdleConnections           int `toml:"max_idle_connections"`
-	ExactCountThreshold          int `toml:"exact_count_threshold"`
-	ExactCountTimeoutMS          int `toml:"exact_count_timeout_ms"`
-	MaxQueryRows                 int `toml:"max_query_rows"`
-	SchemaBulkLoadThreshold      int `toml:"schema_bulk_load_threshold"`
+	// StorePasswordsInKeyring moves the password of a connection saved from
+	// the UI into the operating system keyring instead of the config file.
+	StorePasswordsInKeyring bool
+	MaxOpenConnections      int `toml:"max_open_connections"`
+	MaxIdleConnections      int `toml:"max_idle_connections"`
+	ExactCountThreshold     int `toml:"exact_count_threshold"`
+	ExactCountTimeoutMS     int `toml:"exact_count_timeout_ms"`
+	MaxQueryRows            int `toml:"max_query_rows"`
+	SchemaBulkLoadThreshold int `toml:"schema_bulk_load_threshold"`
 }
 
 type ConnectionPoolConfig struct {
@@ -77,6 +80,11 @@ type Connection struct {
 	Port      string `toml:",omitempty"`
 	DBName    string `toml:",omitempty"`
 	URLParams string `toml:",omitempty"`
+
+	// Keyring is the keyring account holding this connection's password.
+	// When set, the URL is stored without a password and the password is
+	// added at connect time.
+	Keyring string `toml:",omitempty"`
 
 	ReadOnly bool `toml:",omitempty"`
 

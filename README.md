@@ -214,6 +214,7 @@ The `[application]` section is used to define some app settings. Not all setting
 | JSONViewerWordWrap | false | Enable word wrap in JSON viewer |
 | EnterOpensJSONViewer | false | Open JSON viewer when pressing Enter on a cell |
 | DisableUpdateCheck | false | Disable automatic GitHub release checks (manual checks remain available) |
+| StorePasswordsInKeyring | true | Store the password of a connection saved from the UI in the operating system keyring instead of the config file |
 | exact_count_threshold | 50000 | Automatically run an exact count when an unfiltered estimate is at or below this value (0 = never auto-count an estimate) |
 | exact_count_timeout_ms | 200 | Budget for automatic exact counts in milliseconds (0 = disable automatic exact counts; manual `#` remains available) |
 | max_query_rows | 1000 | Maximum rows shown by an interactive SQL-editor result (0 = unlimited) |
@@ -744,6 +745,27 @@ lazysql
 ```
 
 Note: Undefined environment variables will be replaced with an empty string.
+
+## Passwords in the system keyring
+
+When you add or edit a connection in lazysql, the password in its URL is moved to the operating system keyring (macOS Keychain, Windows Credential Manager, or the Secret Service on Linux). The config file keeps the URL without the password and a `Keyring` account id:
+
+```toml
+[[database]]
+Name = 'Production'
+Provider = 'postgres'
+URL = 'postgres://admin@localhost:5432/mydb'
+Keyring = '0b6f4a52-7f0e-4c53-9d0b-3c1f2f8f6f0a'
+```
+
+- The password is read when you connect, not when lazysql starts.
+- The edit form shows the URL without the password. Leave it that way to keep the stored password, or type a URL with a password to replace it.
+- Deleting a connection removes its keyring entry. Entries are stored under the service name `lazysql`.
+- Existing connections with a plain-text password keep working. Open one in the edit form and save it to move its password to the keyring.
+- A URL written with `${env:...}` is left as written unless you change it in the form.
+- A password written in the URL always wins over the keyring entry.
+- If no keyring is available (for example on a headless server), lazysql says so and saves the password in the config file as before.
+- Set `StorePasswordsInKeyring = false` under `[application]` to turn this off.
 
 <!-- KEYBINDINGS -->
 

@@ -36,6 +36,7 @@ func defaultConfig() *Config {
 			JSONViewerWordWrap:           false,
 			EnterOpensJSONViewer:         false,
 			ConfirmOnQuit:                true,
+			StorePasswordsInKeyring:      true,
 			MaxOpenConnections:           models.DefaultMaxOpenConnections,
 			MaxIdleConnections:           models.DefaultMaxIdleConnections,
 			ExactCountThreshold:          models.DefaultExactCountThreshold,
@@ -287,6 +288,36 @@ func (c *Config) SaveConnections(connections []models.Connection) error {
 	return nil
 }
 
+// ConnectionUsesTemplate reports whether the named connection's URL is written
+// in its config file with a ${...} template, such as ${env:DB_URL}. Those
+// credentials already live outside the file and must stay as written.
+func (c *Config) ConnectionUsesTemplate(name string) bool {
+	for _, configFile := range []string{c.LocalConfigFile, c.ConfigFile} {
+		if configFile == "" {
+			continue
+		}
+		table, err := readConfigTable(configFile)
+		if err != nil {
+			continue
+		}
+		rows, ok := table["database"].([]any)
+		if !ok {
+			continue
+		}
+		for _, row := range rows {
+			values, ok := row.(map[string]any)
+			if !ok || values["Name"] != name {
+				continue
+			}
+			rawURL, _ := values["URL"].(string)
+			return strings.Contains(rawURL, "${")
+		}
+		// The local [[database]] list replaces the global one.
+		return false
+	}
+	return false
+}
+
 // preserveConnectionTemplates keeps raw config values for fields that have not
 // changed in the in-memory connection list. In particular, this prevents an
 // expanded ${env:...} URL from being written back as a literal credential.
@@ -433,6 +464,9 @@ func marshalConnectionConfig(connection models.Connection) (map[string]any, erro
 	}
 	if connection.URLParams != "" {
 		values["URLParams"] = connection.URLParams
+	}
+	if connection.Keyring != "" {
+		values["Keyring"] = connection.Keyring
 	}
 	if connection.ReadOnly {
 		values["ReadOnly"] = connection.ReadOnly

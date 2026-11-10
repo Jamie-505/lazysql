@@ -24,6 +24,8 @@ type ConnectionSelection struct {
 	StatusText *tview.TextView
 }
 
+var connectionSelection *ConnectionSelection
+
 func NewConnectionSelection(connectionForm *ConnectionForm, connectionPages *models.ConnectionPages) *ConnectionSelection {
 	wrapper := tview.NewFlex()
 
@@ -77,6 +79,7 @@ func NewConnectionSelection(connectionForm *ConnectionForm, connectionPages *mod
 		Flex:       wrapper,
 		StatusText: statusText,
 	}
+	connectionSelection = cs
 
 	wrapper.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		connections := connectionsTable.GetConnections()
@@ -105,12 +108,14 @@ func NewConnectionSelection(connectionForm *ConnectionForm, connectionPages *mod
 					confirmationModal = nil
 
 					if buttonLabel == "Yes" {
+						deleted := connections[row]
 						newConnections := append(connections[:row], connections[row+1:]...)
 
 						err := app.App.SaveConnections(newConnections)
 						if err != nil {
 							connectionsTable.SetError(err)
 						} else {
+							forgetConnectionPassword(deleted)
 							connectionsTable.SetConnections(newConnections)
 						}
 
@@ -232,6 +237,16 @@ func (cs *ConnectionSelection) Connect(connection models.Connection) *tview.Appl
 			connection.URL = strings.ReplaceAll(connection.URL, "${"+variable+"}", value)
 		}
 	}
+
+	// The password is read from the keyring only now, so starting lazysql
+	// never prompts for keyring access. The resolved URL stays in memory.
+	resolvedURL, err := resolveConnectionURL(connection.URL, connection.Keyring)
+	if err != nil {
+		usage.ConnectionFailed(telemetry.InvalidConnection)
+		cs.StatusText.SetText(err.Error()).SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
+		return App.Draw()
+	}
+	connection.URL = resolvedURL
 
 	cs.StatusText.SetText("Connecting...").SetTextColor(app.Styles.TertiaryTextColor)
 	App.Draw()

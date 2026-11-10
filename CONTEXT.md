@@ -45,3 +45,9 @@ _Avoid_: blank screen during load
 **Transparent Theme**:
 Any theme preset drawn on the terminal's own background instead of the preset's painted background. Set with `[theme] Transparent`.
 _Avoid_: see-through mode, no-background preset
+
+## Credentials
+
+**Keyring Password**:
+A connection password held in the operating system keyring under the connection's `Keyring` account. The config file stores the URL without it; it is added at connect time.
+_Avoid_: encrypted password, secret placeholder

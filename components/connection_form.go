@@ -126,9 +126,12 @@ func (form *ConnectionForm) inputCapture(connectionPages *models.ConnectionPages
 				ReadOnly: readOnly,
 			}
 
+			var keyringWarning string
+
 			switch form.Action {
 			case actionNewConnection:
 
+				keyringWarning = secureConnectionPassword(&parsedDatabaseData)
 				newDatabases = append(databases, parsedDatabaseData)
 				err := app.App.SaveConnections(newDatabases)
 				if err != nil {
@@ -146,11 +149,17 @@ func (form *ConnectionForm) inputCapture(connectionPages *models.ConnectionPages
 						// present on the form (Commands, Username, Password,
 						// Hostname, Port, URLParams, Schemas, ...) are preserved.
 						updated := database
+						// An untouched ${env:...} URL keeps its template in the
+						// config file; its credentials already live elsewhere.
+						keepsTemplate := database.URL == parsedDatabaseData.URL && app.App.ConnectionUsesTemplate(database.Name)
 						updated.Name = parsedDatabaseData.Name
 						updated.Provider = parsedDatabaseData.Provider
 						updated.DBName = parsedDatabaseData.DBName
 						updated.URL = parsedDatabaseData.URL
 						updated.ReadOnly = parsedDatabaseData.ReadOnly
+						if !keepsTemplate {
+							keyringWarning = secureConnectionPassword(&updated)
+						}
 						newDatabases[i] = updated
 					} else {
 						newDatabases[i] = database
@@ -167,20 +176,45 @@ func (form *ConnectionForm) inputCapture(connectionPages *models.ConnectionPages
 
 			connectionsTable.SetConnections(newDatabases)
 			connectionPages.SwitchToPage(pageNameConnectionSelection)
+			if connectionSelection != nil {
+				connectionSelection.StatusText.SetText(keyringWarning).SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
+			}
 
 		} else if event.Key() == tcell.KeyF2 {
 			connectionString := form.GetFormItem(1).(*tview.InputField).GetText()
-			go form.testConnection(connectionString)
+			go form.testConnection(connectionString, form.editedKeyringAccount())
 		}
 		return event
 	}
 }
 
-func (form *ConnectionForm) testConnection(connectionString string) {
+// editedKeyringAccount returns the keyring account of the connection being
+// edited, so a URL shown without its password can still be tested.
+func (form *ConnectionForm) editedKeyringAccount() string {
+	if form.Action != actionEditConnection || connectionsTable == nil {
+		return ""
+	}
+	row, _ := connectionsTable.GetSelection()
+	connections := connectionsTable.GetConnections()
+	if row < 0 || row >= len(connections) {
+		return ""
+	}
+	return connections[row].Keyring
+}
+
+func (form *ConnectionForm) testConnection(connectionString, keyringAccount string) {
 	parsed, err := helpers.ParseConnectionString(connectionString)
 	if err != nil {
 		usage.ConnectionFailed(telemetry.InvalidConnection)
 		form.StatusText.SetText(err.Error()).SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
+		return
+	}
+
+	connectionString, err = resolveConnectionURL(connectionString, keyringAccount)
+	if err != nil {
+		usage.ConnectionFailed(telemetry.InvalidConnection)
+		form.StatusText.SetText(err.Error()).SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
+		App.ForceDraw()
 		return
 	}
 

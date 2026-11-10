@@ -78,6 +78,12 @@ func (a *Application) SaveConnections(connections []models.Connection) error {
 	return a.config.SaveConnections(connections)
 }
 
+// ConnectionUsesTemplate reports whether the named connection's URL is a
+// ${...} template in its config file.
+func (a *Application) ConnectionUsesTemplate(name string) bool {
+	return a.config.ConnectionUsesTemplate(name)
+}
+
 // ThemeConfig returns a copy of the active theme configuration.
 func (a *Application) ThemeConfig() ThemeConfig {
 	if a.config.Theme == nil {

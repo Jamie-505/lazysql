@@ -390,3 +390,43 @@ func TestSaveGlobalConfigKeepsOwnContentAndDropsPathKeys(t *testing.T) {
 		t.Errorf("theme = %v, want Preset light", table["theme"])
 	}
 }
+
+func TestSaveConnectionsWritesKeyringAccountNotPassword(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.toml")
+	config := defaultConfig()
+	config.ConfigFile = path
+
+	connections := []models.Connection{{Name: "prod", Provider: "postgres", URL: "postgres://user@host/db", Keyring: "acct-1"}}
+	if err := config.SaveConnections(connections); err != nil {
+		t.Fatal(err)
+	}
+	content := readFile(t, path)
+	if !strings.Contains(content, "acct-1") {
+		t.Errorf("keyring account was not saved:\n%s", content)
+	}
+
+	var saved Config
+	if err := toml.Unmarshal([]byte(content), &saved); err != nil {
+		t.Fatal(err)
+	}
+	if len(saved.Connections) != 1 || saved.Connections[0].Keyring != "acct-1" {
+		t.Errorf("reloaded connections = %+v", saved.Connections)
+	}
+}
+
+func TestConnectionUsesTemplate(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.toml")
+	content := "[[database]]\nName = \"templated\"\nURL = \"${env:PROD_URL}\"\n\n[[database]]\nName = \"plain\"\nURL = \"postgres://user:pw@host/db\"\n"
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	config := defaultConfig()
+	config.ConfigFile = path
+
+	if !config.ConnectionUsesTemplate("templated") {
+		t.Error("templated connection was not detected")
+	}
+	if config.ConnectionUsesTemplate("plain") || config.ConnectionUsesTemplate("unknown") {
+		t.Error("plain or unknown connection reported as templated")
+	}
+}
