@@ -258,6 +258,16 @@ func (e *SQLEditor) SetQueryCancelFunc(cancel func() bool) {
 	e.cancelQuery = cancel
 }
 
+// cycleCompletion moves the autocomplete selection by delta and wraps around
+// at either end, so Tab and Shift+Tab cycle through the suggestions.
+func (e *SQLEditor) cycleCompletion(delta int) {
+	if len(e.acItems) == 0 {
+		return
+	}
+	e.acSelected = (e.acSelected + delta + len(e.acItems)) % len(e.acItems)
+	e.scrollAutocomplete()
+}
+
 // SetFormatFunc sets the formatter used by the FormatQuery command. The
 // editor itself does not know which SQL dialect it is editing.
 func (e *SQLEditor) SetFormatFunc(format func(string) string) {
@@ -328,7 +338,13 @@ func (e *SQLEditor) InputHandler() func(event *tcell.EventKey, setFocus func(p t
 		// --- 2. Autocomplete handling ---
 		if e.acVisible {
 			switch {
-			case event.Key() == tcell.KeyDown || event.Key() == tcell.KeyTab || event.Key() == tcell.KeyCtrlN:
+			case event.Key() == tcell.KeyTab:
+				e.cycleCompletion(1)
+				return
+			case event.Key() == tcell.KeyBacktab:
+				e.cycleCompletion(-1)
+				return
+			case event.Key() == tcell.KeyDown || event.Key() == tcell.KeyCtrlN:
 				e.acSelected = min(e.acSelected+1, len(e.acItems)-1)
 				e.scrollAutocomplete()
 				return
@@ -336,7 +352,7 @@ func (e *SQLEditor) InputHandler() func(event *tcell.EventKey, setFocus func(p t
 				e.acSelected = max(e.acSelected-1, 0)
 				e.scrollAutocomplete()
 				return
-			case event.Key() == tcell.KeyEnter || event.Key() == tcell.KeyTab:
+			case event.Key() == tcell.KeyEnter:
 				if e.acSelected >= 0 && e.acSelected < len(e.acItems) {
 					e.acceptCompletion()
 				}
@@ -542,6 +558,11 @@ func (e *SQLEditor) handleNormalMode(event *tcell.EventKey) {
 		case 'D':
 			e.pushUndo()
 			e.lines[e.cy] = e.lines[e.cy][:e.cx]
+		case 'C':
+			// Change to end of line: delete it and start inserting there.
+			e.pushUndo()
+			e.lines[e.cy] = e.lines[e.cy][:e.cx]
+			e.vimMode = VimModeInsert
 		case 'p':
 			e.pasteAfter()
 		case 'P':

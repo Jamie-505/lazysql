@@ -968,6 +968,8 @@ Available groups: `Home`, `Connection`, `Tree`, `TreeFilter`, `Table`, `Editor`,
 | Ctrl-X | ExplainQuery | Explain query (plan viewer) |
 | Ctrl-F | FormatQuery | Format query |
 
+In the suggestion list, `Tab` and `Shift+Tab` cycle forward and backward and `Enter` accepts. In normal mode `C` changes to the end of the line and `?` opens the keybinding help.
+
 Specific editor for lazysql can be set by `$SQL_EDITOR`.
 
 ### JSON Viewer

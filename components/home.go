@@ -662,11 +662,19 @@ func (home *Home) homeInputCapture(event *tcell.EventKey) *tcell.EventKey {
 			mainPages.AddPage(pageNameDMLPreview, queryPreviewModal, true, true)
 		}
 	case commands.HelpPopup:
-		if table != nil && (table.GetIsEditing() || table.GetIsFiltering()) {
+		// While typing, "?" is text. The SQL editor in normal mode is not
+		// typing, so help opens there too.
+		editorInNormalMode := table != nil && table.Editor != nil &&
+			app.App.GetFocus() == table.Editor && table.Editor.vimMode == VimModeNormal
+		if table != nil && (table.GetIsEditing() || table.GetIsFiltering()) && !editorInNormalMode {
 			return event
 		}
 
+		home.HelpModal.returnFocus = app.App.GetFocus()
 		mainPages.AddPage(pageNameHelp, home.HelpModal, true, true)
+		if editorInNormalMode {
+			return nil
+		}
 	case commands.SearchGlobal:
 		// Don't intercept Ctrl+P when the SQL editor is in insert mode
 		if table != nil && table.Editor != nil && app.App.GetFocus() == table.Editor && table.Editor.vimMode == VimModeInsert {

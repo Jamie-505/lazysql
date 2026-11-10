@@ -23,6 +23,8 @@ type HelpModal struct {
 	Wrapper       *tview.Flex
 	KeybindGroups []KeybindGroup
 	LongestKey    string
+	// returnFocus gets the focus back when the modal closes.
+	returnFocus tview.Primitive
 }
 
 func NewHelpModal() *HelpModal {
@@ -96,6 +98,11 @@ func NewHelpModal() *HelpModal {
 		if command == commands.Quit || command == commands.HelpPopup || event.Key() == tcell.KeyEsc {
 			modal.showSearchBar(false)
 			mainPages.RemovePage(pageNameHelp)
+			if modal.returnFocus != nil {
+				app.App.SetFocus(modal.returnFocus)
+				modal.returnFocus = nil
+			}
+			return nil
 		}
 		return event
 	})
