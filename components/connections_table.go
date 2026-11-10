@@ -33,7 +33,8 @@ func NewConnectionsTable() *ConnectionsTable {
 	}
 
 	table.SetOffset(5, 0)
-	table.SetSelectedStyle(tcell.StyleDefault.Foreground(app.Styles.SecondaryTextColor).Background(tview.Styles.PrimitiveBackgroundColor))
+	// A filled bar, so the selection shows even with a single connection.
+	table.SetSelectedStyle(builderSelectedStyle())
 
 	wrapper.AddItem(table, 0, 1, true)
 	table.SetConnections(app.App.Connections())
