@@ -93,6 +93,12 @@ func (a *Application) SaveThemePreset(preset string) error {
 	return a.config.SaveThemePreset(preset)
 }
 
+// SaveTheme persists a built-in theme preset and its transparency to the
+// active config file.
+func (a *Application) SaveTheme(preset string, transparent bool) error {
+	return a.config.SaveTheme(preset, transparent)
+}
+
 // Register adds a task to the wait group and returns a
 // function that decrements the task count when called.
 //

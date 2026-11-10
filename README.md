@@ -284,9 +284,17 @@ Presets:
 | `tokyo-night` | [Tokyo Night](https://github.com/enkia/tokyo-night-vscode-theme) |
 | `catppuccin-mocha` | [Catppuccin](https://github.com/catppuccin/catppuccin) Mocha |
 
-Press `Ctrl+T` anywhere in lazysql to open the theme picker. Move with the arrow keys, `j`/`k`, or `Ctrl+N`/`Ctrl+P` to preview each theme across the running application. Press `Enter` to apply and save the selected preset, or `q`/`Esc` to restore the previous theme.
+Press `Ctrl+T` anywhere in lazysql to open the theme picker. Move with the arrow keys, `j`/`k`, or `Ctrl+N`/`Ctrl+P` to preview each theme across the running application. Press `t` to toggle a transparent background. Press `Enter` to apply and save the selected preset, or `q`/`Esc` to restore the previous theme.
 
 `default` uses the terminal's background color. All other presets paint their own background.
+
+To keep the terminal's own background (for example a translucent terminal window) with any preset, set `Transparent`, or press `t` in the theme picker:
+
+```toml
+[theme]
+Preset = "tokyo-night"
+Transparent = true
+```
 
 A color is a name (`"red"`, `"dodgerblue"`, any [W3C color name](https://github.com/gdamore/tcell/blob/v2.7.4/color.go#L851)), a hex value (`"#RRGGBB"`), or `"default"` for the terminal's own color. Unknown keys, presets and colors are reported when lazysql starts.
 

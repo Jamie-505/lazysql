@@ -335,3 +335,53 @@ func TestThemeNotWrittenWhenUnset(t *testing.T) {
 		t.Errorf("encoded config contains a theme section:\n%s", buf.String())
 	}
 }
+
+func TestTransparentThemeUsesTerminalBackground(t *testing.T) {
+	for _, preset := range ThemePresetNames() {
+		theme, err := NewTheme(ThemeConfig{
+			Preset:      preset,
+			Transparent: true,
+			Colors:      map[string]string{"PrimitiveBackground": "#123456"},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if theme.PrimitiveBackgroundColor != tcell.ColorDefault {
+			t.Errorf("%s: background = %v, want terminal default", preset, theme.PrimitiveBackgroundColor)
+		}
+		painted, err := NewTheme(ThemeConfig{Preset: preset})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if theme.PrimaryTextColor != painted.PrimaryTextColor || theme.ContrastBackgroundColor != painted.ContrastBackgroundColor {
+			t.Errorf("%s: transparency changed colors other than the background", preset)
+		}
+	}
+}
+
+func TestSaveThemeWritesTransparency(t *testing.T) {
+	config := defaultConfig()
+	config.ConfigFile = filepath.Join(t.TempDir(), "config.toml")
+
+	if err := config.SaveTheme("nord", true); err != nil {
+		t.Fatal(err)
+	}
+	var saved Config
+	file, err := os.ReadFile(config.ConfigFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := toml.Unmarshal(file, &saved); err != nil {
+		t.Fatal(err)
+	}
+	if saved.Theme == nil || saved.Theme.Preset != "nord" || !saved.Theme.Transparent {
+		t.Fatalf("saved theme = %#v, want transparent nord", saved.Theme)
+	}
+
+	if err := config.SaveTheme("nord", false); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(readFile(t, config.ConfigFile), "Transparent") {
+		t.Error("Transparent was written although it is off")
+	}
+}

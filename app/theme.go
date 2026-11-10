@@ -20,6 +20,9 @@ type ThemeConfig struct {
 	// names listed in Theme.colors, values are anything tcell.GetColor
 	// accepts (a color name, "#RRGGBB" or "default").
 	Colors map[string]string `toml:"Colors,omitempty"`
+	// Transparent makes any preset use the terminal's own background
+	// instead of painting PrimitiveBackground.
+	Transparent bool `toml:"Transparent,omitempty"`
 }
 
 type Theme struct {
@@ -176,6 +179,9 @@ func NewTheme(cfg ThemeConfig) (*Theme, error) {
 	}
 	if err := theme.set(cfg.Colors); err != nil {
 		return nil, err
+	}
+	if cfg.Transparent {
+		theme.PrimitiveBackgroundColor = tcell.ColorDefault
 	}
 	return theme, nil
 }

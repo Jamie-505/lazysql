@@ -463,7 +463,14 @@ func marshalConnectionConfig(connection models.Connection) (map[string]any, erro
 // SaveThemePreset writes the preset to the local config when one is in use,
 // otherwise to the global config.
 func (c *Config) SaveThemePreset(preset string) error {
-	theme := &ThemeConfig{Preset: preset}
+	return c.SaveTheme(preset, false)
+}
+
+// SaveTheme writes the preset and its transparency to the local config when
+// one is in use, otherwise to the global config. Color overrides are dropped:
+// they were written for the previous preset.
+func (c *Config) SaveTheme(preset string, transparent bool) error {
+	theme := &ThemeConfig{Preset: preset, Transparent: transparent}
 	if err := saveConfigKey(c.activeConfigFile(), "theme", theme); err != nil {
 		return err
 	}

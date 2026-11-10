@@ -39,3 +39,9 @@ _Avoid_: queue, race
 **Stale Data**:
 Old table results remain visible during a reload. Only cleared on success when new data arrives. Exception: SQL editor queries clear immediately on execute.
 _Avoid_: blank screen during load
+
+## Themes
+
+**Transparent Theme**:
+Any theme preset drawn on the terminal's own background instead of the preset's painted background. Set with `[theme] Transparent`.
+_Avoid_: see-through mode, no-background preset

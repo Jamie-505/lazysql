@@ -20,7 +20,10 @@ type ThemePicker struct {
 	originalConfig app.ThemeConfig
 	previousFocus  tview.Primitive
 	selectedPreset string
+	transparent    bool
 }
+
+const themePickerHint = "j/k or Ctrl+N/P to preview • t transparent • Enter to save • q/Esc to cancel"
 
 func NewThemePicker(onClose func()) *ThemePicker {
 	picker := &ThemePicker{
@@ -37,7 +40,15 @@ func NewThemePicker(onClose func()) *ThemePicker {
 	picker.list.SetSelectedStyle(tcell.StyleDefault.
 		Background(app.Styles.SecondaryTextColor).
 		Foreground(app.Styles.ContrastSecondaryTextColor))
-	picker.list.SetInputCapture(themePickerNavigationEvent)
+	picker.transparent = picker.originalConfig.Transparent
+	picker.list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyRune && event.Rune() == 't' {
+			picker.transparent = !picker.transparent
+			picker.applyPreview()
+			return nil
+		}
+		return themePickerNavigationEvent(event)
+	})
 	picker.preview.SetBorder(true).SetTitle(" Live preview ")
 	picker.preview.SetWrap(true)
 	picker.status.SetTextAlign(tview.AlignCenter)
@@ -57,16 +68,11 @@ func NewThemePicker(onClose func()) *ThemePicker {
 	}
 	picker.list.SetCurrentItem(currentIndex)
 	picker.selectedPreset = names[currentIndex]
-	picker.updatePreview(app.Styles, picker.selectedPreset)
+	picker.updatePreview(app.Styles, picker.previewTitle())
 
 	picker.list.SetChangedFunc(func(_ int, name, _ string, _ rune) {
 		picker.selectedPreset = name
-		if err := app.App.PreviewTheme(app.ThemeConfig{Preset: name}); err != nil {
-			picker.status.SetText(fmt.Sprintf("[%s]%s[-]", app.Styles.ErrorColor, err))
-			return
-		}
-		picker.status.SetText("j/k or Ctrl+N/P to preview • Enter to save • q/Esc to cancel")
-		picker.updatePreview(app.Styles, name)
+		picker.applyPreview()
 	})
 
 	closePicker := func(restore bool) {
@@ -83,11 +89,11 @@ func NewThemePicker(onClose func()) *ThemePicker {
 	}
 
 	picker.list.SetSelectedFunc(func(_ int, name, _ string, _ rune) {
-		if err := app.App.PreviewTheme(app.ThemeConfig{Preset: name}); err != nil {
+		if err := app.App.PreviewTheme(app.ThemeConfig{Preset: name, Transparent: picker.transparent}); err != nil {
 			picker.status.SetText(fmt.Sprintf("[%s]%s[-]", app.Styles.ErrorColor, err))
 			return
 		}
-		if err := app.App.SaveThemePreset(name); err != nil {
+		if err := app.App.SaveTheme(name, picker.transparent); err != nil {
 			picker.status.SetText(fmt.Sprintf("[%s]Could not save theme: %s[-]", app.Styles.ErrorColor, err))
 			return
 		}
@@ -112,9 +118,27 @@ func NewThemePicker(onClose func()) *ThemePicker {
 			AddItem(nil, 0, 1, false), 24, 0, true).
 		AddItem(nil, 0, 1, false)
 
-	picker.status.SetText("j/k or Ctrl+N/P to preview • Enter to save • q/Esc to cancel")
+	picker.status.SetText(themePickerHint)
 	app.App.BeginThemePreview()
 	return picker
+}
+
+// applyPreview applies the selected preset and transparency to the running UI.
+func (picker *ThemePicker) applyPreview() {
+	cfg := app.ThemeConfig{Preset: picker.selectedPreset, Transparent: picker.transparent}
+	if err := app.App.PreviewTheme(cfg); err != nil {
+		picker.status.SetText(fmt.Sprintf("[%s]%s[-]", app.Styles.ErrorColor, err))
+		return
+	}
+	picker.status.SetText(themePickerHint)
+	picker.updatePreview(app.Styles, picker.previewTitle())
+}
+
+func (picker *ThemePicker) previewTitle() string {
+	if picker.transparent {
+		return picker.selectedPreset + " (transparent)"
+	}
+	return picker.selectedPreset
 }
 
 func themePickerNavigationEvent(event *tcell.EventKey) *tcell.EventKey {
