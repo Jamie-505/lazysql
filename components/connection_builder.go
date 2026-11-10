@@ -225,13 +225,8 @@ type ConnectionBuilder struct {
 
 func NewConnectionBuilder(onDone func(name, connectionURL string), onCancel func()) *ConnectionBuilder {
 	builder := &ConnectionBuilder{
-		Flex: tview.NewFlex().SetDirection(tview.FlexRow),
-		Form: tview.NewForm().
-			SetFieldBackgroundColor(app.Styles.InverseTextColor).
-			SetLabelColor(app.Styles.PrimaryTextColor).
-			SetFieldTextColor(app.Styles.ContrastSecondaryTextColor).
-			SetButtonStyle(builderFieldStyle()).
-			SetButtonActivatedStyle(builderSelectedStyle()),
+		Flex:       tview.NewFlex().SetDirection(tview.FlexRow),
+		Form:       styleConnectionForm(tview.NewForm()),
 		StatusText: tview.NewTextView(),
 		header:     tview.NewTextView(),
 		onDone:     onDone,
@@ -239,8 +234,10 @@ func NewConnectionBuilder(onDone func(name, connectionURL string), onCancel func
 	}
 	builder.StatusText.SetBorderPadding(1, 0, 0, 0)
 
-	hint := tview.NewTextView().SetText("Tab to move • F1 or Continue to review the URL • Esc to go back")
-	hint.SetTextColor(app.Styles.TertiaryTextColor)
+	key := app.Styles.SecondaryTextColor
+	hint := tview.NewTextView().SetDynamicColors(true).
+		SetText(fmt.Sprintf("[%s]Tab [-]Move  [%s]F1 [-]Continue  [%s]Esc [-]Back", key, key, key))
+	hint.SetTextColor(app.Styles.PrimaryTextColor)
 
 	builder.header.SetTextColor(app.Styles.TertiaryTextColor)
 
@@ -335,16 +332,27 @@ func (builder *ConnectionBuilder) finish() {
 	builder.onDone(strings.TrimSpace(builder.inputText(builderLabelName)), connectionURL)
 }
 
+// styleConnectionForm gives a connection form the look of the rest of the
+// app: fields are a quiet shade of the background and only the focused
+// button carries the highlight color.
+func styleConnectionForm(form *tview.Form) *tview.Form {
+	return form.
+		SetLabelColor(app.Styles.PrimaryTextColor).
+		SetFieldStyle(builderFieldStyle()).
+		SetButtonStyle(builderFieldStyle()).
+		SetButtonActivatedStyle(builderSelectedStyle())
+}
+
 // builderFieldStyle is the look of a field, an unfocused button and an
 // unselected dropdown option.
 func builderFieldStyle() tcell.Style {
 	return tcell.StyleDefault.
-		Background(app.Styles.InverseTextColor).
-		Foreground(app.Styles.ContrastSecondaryTextColor)
+		Background(app.Styles.ContrastBackgroundColor).
+		Foreground(app.Styles.PrimaryTextColor)
 }
 
 // builderSelectedStyle is the look of the focused button and the selected
-// dropdown option. It matches the selected row of the type picker.
+// dropdown option. It matches the selected row of the connection list.
 func builderSelectedStyle() tcell.Style {
 	return tcell.StyleDefault.
 		Background(app.Styles.SecondaryTextColor).

@@ -26,7 +26,7 @@ func NewConnectionForm(connectionPages *models.ConnectionPages) *ConnectionForm 
 
 	wrapper.SetDirection(tview.FlexColumnCSS)
 
-	addForm := tview.NewForm().SetFieldBackgroundColor(app.Styles.InverseTextColor).SetButtonBackgroundColor(tview.Styles.InverseTextColor).SetLabelColor(tview.Styles.PrimaryTextColor).SetFieldTextColor(tview.Styles.ContrastSecondaryTextColor)
+	addForm := styleConnectionForm(tview.NewForm())
 	addForm.AddInputField("Name", "", 0, nil, nil)
 	addForm.AddInputField("URL", "", 0, nil, nil)
 	addForm.AddCheckbox("Read-Only", false, nil)
