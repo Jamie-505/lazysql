@@ -23,6 +23,7 @@ import (
 	"github.com/jorgerojas26/lazysql/helpers"
 	"github.com/jorgerojas26/lazysql/helpers/logger"
 	"github.com/jorgerojas26/lazysql/internal/history"
+	"github.com/jorgerojas26/lazysql/internal/sqlformat"
 	"github.com/jorgerojas26/lazysql/internal/telemetry"
 	"github.com/jorgerojas26/lazysql/lib"
 	"github.com/jorgerojas26/lazysql/models"
@@ -301,6 +302,9 @@ func (table *ResultsTable) WithFilter() *ResultsTable {
 
 func (table *ResultsTable) WithEditor() *ResultsTable {
 	editor := NewSQLEditor(table.ConnectionURL)
+	editor.SetFormatFunc(func(query string) string {
+		return sqlformat.Format(query, sqlDialect(table.DBDriver.GetProvider()))
+	})
 	editorPages := tview.NewPages()
 
 	editor.SetFocusFunc(func() {

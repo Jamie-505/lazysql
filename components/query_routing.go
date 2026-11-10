@@ -4,7 +4,25 @@ import (
 	"strings"
 
 	"github.com/jorgerojas26/lazysql/drivers"
+	"github.com/jorgerojas26/lazysql/internal/sqlformat"
 )
+
+// sqlDialect returns the lexical rules the formatter needs for a provider.
+func sqlDialect(provider string) sqlformat.Dialect {
+	switch provider {
+	case drivers.DriverPostgres:
+		return sqlformat.Dialect{NestedComments: true, DollarQuotes: true}
+	case drivers.DriverMySQL:
+		return sqlformat.Dialect{BackslashEscapes: true, HashComments: true}
+	case drivers.DriverMSSQL:
+		return sqlformat.Dialect{NestedComments: true, BracketIdentifiers: true}
+	case drivers.DriverSqlite:
+		return sqlformat.Dialect{BracketIdentifiers: true}
+	case drivers.DriverClickHouse:
+		return sqlformat.Dialect{BackslashEscapes: true}
+	}
+	return sqlformat.Dialect{}
+}
 
 // queryReturnsRows classifies editor queries, not their safety. Read-only
 // validation must still run independently before either execution path.

@@ -111,6 +111,7 @@ type SQLEditor struct {
 	subscribers   []chan models.StateChange
 	ConnectionURL string
 	cancelQuery   func() bool
+	formatQuery   func(string) string
 	loadColumns   func(table string)
 }
 
@@ -257,6 +258,30 @@ func (e *SQLEditor) SetQueryCancelFunc(cancel func() bool) {
 	e.cancelQuery = cancel
 }
 
+// SetFormatFunc sets the formatter used by the FormatQuery command. The
+// editor itself does not know which SQL dialect it is editing.
+func (e *SQLEditor) SetFormatFunc(format func(string) string) {
+	e.formatQuery = format
+}
+
+// formatText replaces the editor content with its formatted form as one
+// undo step and keeps the cursor on its line.
+func (e *SQLEditor) formatText() {
+	if e.formatQuery == nil {
+		return
+	}
+	current := e.GetText()
+	formatted := e.formatQuery(current)
+	if formatted == current {
+		return
+	}
+	line := e.cy
+	// SetText pushes the undo state itself.
+	e.SetText(formatted, false)
+	// SetText moved the cursor to the top; go back to the line it was on.
+	e.cy = min(line, len(e.lines)-1)
+}
+
 // ---------------------------------------------------------------------------
 // Input handling
 // ---------------------------------------------------------------------------
@@ -267,6 +292,11 @@ func (e *SQLEditor) InputHandler() func(event *tcell.EventKey, setFocus func(p t
 		// --- 1. Always handle open-in-external-editor (Ctrl+Space) ---
 		cmd := app.Keymaps.Group(app.EditorGroup).Resolve(event)
 		if (event.Key() == tcell.KeyEscape || cmd == commands.CancelQuery) && e.cancelQuery != nil && e.cancelQuery() {
+			return
+		}
+		if cmd == commands.FormatQuery {
+			e.acVisible = false
+			e.formatText()
 			return
 		}
 		if cmd == commands.ExplainQuery {

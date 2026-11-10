@@ -103,6 +103,7 @@ const (
 
 	// SQL editor
 	ExplainQuery
+	FormatQuery
 )
 
 func (c Command) String() string {
@@ -273,6 +274,8 @@ func (c Command) String() string {
 		return "ColumnVisibility"
 	case ExplainQuery:
 		return "ExplainQuery"
+	case FormatQuery:
+		return "FormatQuery"
 	}
 
 	return "Unknown"

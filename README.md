@@ -476,6 +476,12 @@ You can update the tree by pressing `R`, so you can see your newly created table
 > with the query-result. \
 > To switch focus back to SQL-Editor press `/`
 
+### Format a query
+
+Press `<Ctrl+F>` in the SQL Editor to lay the query out one clause per line. `u` in normal mode undoes it.
+
+The formatter only changes whitespace. Keywords keep the case you typed, and anything written without a space (`:name`, `a->>'k'`, `N'text'`) stays that way. Strings and comments are never touched.
+
 ### Explain a query (Plan Viewer)
 
 Press `<Ctrl+X>` in the SQL Editor to see the plan of the query without running it. In visual mode only the selected text is explained.
@@ -925,6 +931,7 @@ Available groups: `Home`, `Connection`, `Tree`, `TreeFilter`, `Table`, `Editor`,
 | Esc | CancelQuery | Cancel the active query; otherwise preserve normal editor Escape behavior |
 | Ctrl-Space | OpenInExternalEditor | Open in external editor |
 | Ctrl-X | ExplainQuery | Explain query (plan viewer) |
+| Ctrl-F | FormatQuery | Format query |
 
 Specific editor for lazysql can be set by `$SQL_EDITOR`.
 
