@@ -112,6 +112,10 @@ func NewHomePage(connection models.Connection, dbdriver drivers.Driver) *Home {
 
 	rightWrapper.SetBorderColor(app.Styles.InverseTextColor)
 	rightWrapper.SetBorder(true)
+	if connection.ReadOnly {
+		rightWrapper.SetTitle(" [READ-ONLY] ")
+		rightWrapper.SetTitleColor(app.Styles.ReadOnlyColor)
+	}
 	rightWrapper.SetDirection(tview.FlexColumnCSS)
 	rightWrapper.SetInputCapture(home.rightWrapperInputCapture)
 	rightWrapper.AddItem(tabbedPane.HeaderContainer, 1, 0, false)
