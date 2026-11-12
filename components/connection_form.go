@@ -19,6 +19,9 @@ type ConnectionForm struct {
 	*tview.Form
 	StatusText *tview.TextView
 	Action     string
+	// backPage is where Esc goes: the details step for a connection being
+	// built, the connection list otherwise.
+	backPage string
 }
 
 func NewConnectionForm(connectionPages *models.ConnectionPages) *ConnectionForm {
@@ -55,7 +58,7 @@ func NewConnectionForm(connectionPages *models.ConnectionPages) *ConnectionForm 
 	buttonsWrapper.AddItem(connectButton, 0, 1, false)
 	buttonsWrapper.AddItem(nil, 1, 0, false)
 
-	cancelButton := tview.NewButton(fmt.Sprintf("[%s]Esc [-]Cancel", app.Styles.SecondaryTextColor))
+	cancelButton := tview.NewButton(fmt.Sprintf("[%s]Esc [-]Back", app.Styles.SecondaryTextColor))
 	cancelButton.SetStyle(tcell.StyleDefault.Background(app.Styles.PrimitiveBackgroundColor).Foreground(app.Styles.PrimaryTextColor))
 	cancelButton.SetBorder(true)
 
@@ -83,7 +86,7 @@ func (form *ConnectionForm) inputCapture(connectionPages *models.ConnectionPages
 	return func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEsc:
-			connectionPages.SwitchToPage(pageNameConnectionSelection)
+			form.goBack(connectionPages)
 			return nil
 		case tcell.KeyEnter:
 			form.save(connectionPages)
@@ -105,6 +108,19 @@ func (form *ConnectionForm) inputCapture(connectionPages *models.ConnectionPages
 		}
 		return vimFormNavigation(event)
 	}
+}
+
+// SetBackPage sets the page Esc returns to.
+func (form *ConnectionForm) SetBackPage(page string) {
+	form.backPage = page
+}
+
+func (form *ConnectionForm) goBack(connectionPages *models.ConnectionPages) {
+	page := form.backPage
+	if page == "" {
+		page = pageNameConnectionSelection
+	}
+	connectionPages.SwitchToPage(page)
 }
 
 // save stores the form as a new or edited connection and returns to the

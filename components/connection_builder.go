@@ -436,7 +436,8 @@ func addConnectionTypePages(pages *models.ConnectionPages, form *ConnectionForm)
 	builder := NewConnectionBuilder(func(name, connectionURL string) {
 		form.GetFormItemByLabel("Name").(*tview.InputField).SetText(name)
 		form.GetFormItemByLabel("URL").(*tview.InputField).SetText(connectionURL)
-		form.StatusText.SetText("Review the URL. Tab out of the fields, then S to save, T to test, C to save and connect").SetTextColor(app.Styles.TertiaryTextColor)
+		form.StatusText.SetText("Review the URL. Tab out of the fields, then S to save, T to test, C to save and connect. Esc edits the details").SetTextColor(app.Styles.TertiaryTextColor)
+		form.SetBackPage(pageNameConnectionBuilder)
 		form.Form.SetFocus(0)
 		pages.SwitchToPage(pageNameConnectionForm)
 	}, func() {
@@ -445,6 +446,7 @@ func addConnectionTypePages(pages *models.ConnectionPages, form *ConnectionForm)
 
 	picker := NewConnectionTypePicker(func(selected connectionType) {
 		if selected.Provider == "" {
+			form.SetBackPage(pageNameConnectionType)
 			form.Form.SetFocus(0)
 			pages.SwitchToPage(pageNameConnectionForm)
 			return

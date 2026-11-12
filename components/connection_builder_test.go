@@ -9,6 +9,7 @@ import (
 
 	"github.com/jorgerojas26/lazysql/drivers"
 	"github.com/jorgerojas26/lazysql/helpers"
+	"github.com/jorgerojas26/lazysql/models"
 )
 
 func TestBuildConnectionURL(t *testing.T) {
@@ -156,6 +157,30 @@ func TestConnectionTypePickerOffersEveryType(t *testing.T) {
 	handler(tcell.NewEventKey(tcell.KeyEscape, 0, tcell.ModNone), nil)
 	if !cancelled {
 		t.Fatal("Escape did not cancel the picker")
+	}
+}
+
+func TestReviewFormEscReturnsToFilledDetails(t *testing.T) {
+	pages := &models.ConnectionPages{Pages: tview.NewPages()}
+	pages.AddPage(pageNameConnectionSelection, tview.NewBox(), true, true)
+	form := NewConnectionForm(pages)
+	pages.AddPage(pageNameConnectionForm, form.Flex, true, false)
+	builder := addConnectionTypePages(pages, form)
+
+	builder.SetType(connectionTypes[0])
+	builder.Form.GetFormItemByLabel(builderLabelName).(*tview.InputField).SetText("mine")
+	builder.Form.GetFormItemByLabel(builderLabelUser).(*tview.InputField).SetText("me")
+	builder.finish()
+	if front, _ := pages.GetFrontPage(); front != pageNameConnectionForm {
+		t.Fatalf("after Continue front page = %q", front)
+	}
+
+	form.Flex.GetInputCapture()(tcell.NewEventKey(tcell.KeyEscape, 0, tcell.ModNone))
+	if front, _ := pages.GetFrontPage(); front != pageNameConnectionBuilder {
+		t.Fatalf("Esc went to %q, want the details step", front)
+	}
+	if user := builder.inputText(builderLabelUser); user != "me" {
+		t.Errorf("details lost: user = %q", user)
 	}
 }
 

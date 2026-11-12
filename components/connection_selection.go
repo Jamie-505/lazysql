@@ -99,6 +99,7 @@ func NewConnectionSelection(connectionForm *ConnectionForm, connectionPages *mod
 				connectionForm.StatusText.SetText("")
 
 				connectionForm.SetAction(actionEditConnection)
+				connectionForm.SetBackPage(pageNameConnectionSelection)
 				return nil
 			case commands.DeleteConnection:
 				confirmationModal := NewConfirmationModal("")
