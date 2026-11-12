@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -150,6 +151,32 @@ func buildConnectionURL(spec connectionSpec) (string, error) {
 	return result.String(), nil
 }
 
+// formHotkey returns the lower-cased letter of a key pressed while focus is
+// outside a text field (on a checkbox or button), or 0. Inside a text field
+// letters are typed as usual; Tab moves out of it.
+func formHotkey(event *tcell.EventKey) rune {
+	if event.Key() != tcell.KeyRune || event.Modifiers()&(tcell.ModCtrl|tcell.ModAlt) != 0 {
+		return 0
+	}
+	switch app.App.GetFocus().(type) {
+	case *tview.InputField, *tview.List:
+		return 0
+	}
+	return unicode.ToLower(event.Rune())
+}
+
+// vimFormNavigation lets j/k move between form fields like Tab/Backtab when
+// focus is outside a text field.
+func vimFormNavigation(event *tcell.EventKey) *tcell.EventKey {
+	switch formHotkey(event) {
+	case 'j':
+		return tcell.NewEventKey(tcell.KeyTab, 0, tcell.ModNone)
+	case 'k':
+		return tcell.NewEventKey(tcell.KeyBacktab, 0, tcell.ModNone)
+	}
+	return event
+}
+
 // vimListNavigation lets j/k move in a list like the arrow keys.
 func vimListNavigation(event *tcell.EventKey) *tcell.EventKey {
 	if event.Key() == tcell.KeyRune {
@@ -236,7 +263,7 @@ func NewConnectionBuilder(onDone func(name, connectionURL string), onCancel func
 
 	key := app.Styles.SecondaryTextColor
 	hint := tview.NewTextView().SetDynamicColors(true).
-		SetText(fmt.Sprintf("[%s]Tab [-]Move  [%s]F1 [-]Continue  [%s]Esc [-]Back", key, key, key))
+		SetText(fmt.Sprintf("[%s]Tab [-]Move  [%s]S [-]Continue  [%s]Esc [-]Back", key, key, key))
 	hint.SetTextColor(app.Styles.PrimaryTextColor)
 
 	builder.header.SetTextColor(app.Styles.TertiaryTextColor)
@@ -255,11 +282,12 @@ func NewConnectionBuilder(onDone func(name, connectionURL string), onCancel func
 			}
 			builder.onCancel()
 			return nil
-		case tcell.KeyF1:
+		}
+		if formHotkey(event) == 's' {
 			builder.finish()
 			return nil
 		}
-		return event
+		return vimFormNavigation(event)
 	})
 	return builder
 }
@@ -408,7 +436,7 @@ func addConnectionTypePages(pages *models.ConnectionPages, form *ConnectionForm)
 	builder := NewConnectionBuilder(func(name, connectionURL string) {
 		form.GetFormItemByLabel("Name").(*tview.InputField).SetText(name)
 		form.GetFormItemByLabel("URL").(*tview.InputField).SetText(connectionURL)
-		form.StatusText.SetText("Review the URL, then F1 to save or F2 to test").SetTextColor(app.Styles.TertiaryTextColor)
+		form.StatusText.SetText("Review the URL. Tab out of the fields, then S to save, T to test, C to save and connect").SetTextColor(app.Styles.TertiaryTextColor)
 		form.Form.SetFocus(0)
 		pages.SwitchToPage(pageNameConnectionForm)
 	}, func() {

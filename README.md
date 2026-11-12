@@ -453,8 +453,8 @@ To launch lazysql in read-only mode.
 1. Start `lazysql`
 2. Create a new connection (press `n`)
 3. Choose the database type (`j`/`k` and `<Enter>`, or its number)
-4. Fill in host, port, user, password and database, and pick the encryption option. Press `F1` or choose `Continue`
-5. Review the generated URL, test it with `F2`, save it with `F1`
+4. Fill in host, port, user, password and database, and pick the encryption option. Move between fields with `Tab` (`j`/`k` also work outside text fields). Press `Enter` on `Continue`, or `S` outside a text field
+5. Review the generated URL, then, outside a text field, test it with `T`, save it with `S`, or save and connect with `C` (`Enter` also saves)
 6. Connect to the DB (press `<Enter>`)
 
 Encryption options per database type:

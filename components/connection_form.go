@@ -34,21 +34,21 @@ func NewConnectionForm(connectionPages *models.ConnectionPages) *ConnectionForm 
 
 	buttonsWrapper := tview.NewFlex().SetDirection(tview.FlexColumn)
 
-	saveButton := tview.NewButton(fmt.Sprintf("[%s]F1 [-]Save", app.Styles.SecondaryTextColor))
+	saveButton := tview.NewButton(fmt.Sprintf("[%s]S [-]Save", app.Styles.SecondaryTextColor))
 	saveButton.SetStyle(tcell.StyleDefault.Background(app.Styles.PrimitiveBackgroundColor).Foreground(app.Styles.PrimaryTextColor))
 	saveButton.SetBorder(true)
 
 	buttonsWrapper.AddItem(saveButton, 0, 1, false)
 	buttonsWrapper.AddItem(nil, 1, 0, false)
 
-	testButton := tview.NewButton(fmt.Sprintf("[%s]F2 [-]Test", app.Styles.SecondaryTextColor))
+	testButton := tview.NewButton(fmt.Sprintf("[%s]T [-]Test", app.Styles.SecondaryTextColor))
 	testButton.SetStyle(tcell.StyleDefault.Background(app.Styles.PrimitiveBackgroundColor).Foreground(app.Styles.PrimaryTextColor))
 	testButton.SetBorder(true)
 
 	buttonsWrapper.AddItem(testButton, 0, 1, false)
 	buttonsWrapper.AddItem(nil, 1, 0, false)
 
-	connectButton := tview.NewButton(fmt.Sprintf("[%s]F3 [-]Connect", app.Styles.SecondaryTextColor))
+	connectButton := tview.NewButton(fmt.Sprintf("[%s]C [-]Connect", app.Styles.SecondaryTextColor))
 	connectButton.SetStyle(tcell.StyleDefault.Background(app.Styles.PrimitiveBackgroundColor).Foreground(app.Styles.PrimaryTextColor))
 	connectButton.SetBorder(true)
 
@@ -81,111 +81,133 @@ func NewConnectionForm(connectionPages *models.ConnectionPages) *ConnectionForm 
 
 func (form *ConnectionForm) inputCapture(connectionPages *models.ConnectionPages) func(event *tcell.EventKey) *tcell.EventKey {
 	return func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyEsc {
+		switch event.Key() {
+		case tcell.KeyEsc:
 			connectionPages.SwitchToPage(pageNameConnectionSelection)
-		} else if event.Key() == tcell.KeyF1 || event.Key() == tcell.KeyEnter {
-			connectionName := form.GetFormItem(0).(*tview.InputField).GetText()
-
-			if connectionName == "" {
-				form.StatusText.SetText("Connection name is required").SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
-				return event
+			return nil
+		case tcell.KeyEnter:
+			form.save(connectionPages)
+			return nil
+		}
+		switch formHotkey(event) {
+		case 's':
+			form.save(connectionPages)
+			return nil
+		case 'c':
+			if saved, ok := form.save(connectionPages); ok && connectionSelection != nil {
+				go connectionSelection.Connect(saved)
 			}
-
-			connectionString := form.GetFormItem(1).(*tview.InputField).GetText()
-
-			parsed, err := helpers.ParseConnectionString(connectionString)
-			if err != nil {
-				form.StatusText.SetText(err.Error()).SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
-				return event
-			}
-
-			databases := app.App.Connections()
-			newDatabases := make([]models.Connection, len(databases))
-
-			readOnly := form.GetFormItem(2).(*tview.Checkbox).IsChecked()
-			showAllDatabases := form.GetFormItem(3).(*tview.Checkbox).IsChecked()
-
-			// When the user opts in to browsing every database in the
-			// instance, force DBName empty so the tree's InitializeNodes
-			// falls back to GetDatabases() instead of pinning to whatever
-			// database happens to be embedded in the connection URL.
-			var DBName string
-			if !showAllDatabases {
-				DBName = strings.Split(parsed.Normalize(",", "NULL", 0), ",")[3]
-
-				if DBName == "NULL" {
-					DBName = ""
-				}
-			}
-
-			parsedDatabaseData := models.Connection{
-				Name:     connectionName,
-				Provider: parsed.Driver,
-				DBName:   DBName,
-				URL:      connectionString,
-				ReadOnly: readOnly,
-			}
-
-			var keyringWarning string
-
-			switch form.Action {
-			case actionNewConnection:
-
-				keyringWarning = secureConnectionPassword(&parsedDatabaseData)
-				newDatabases = append(databases, parsedDatabaseData)
-				err := app.App.SaveConnections(newDatabases)
-				if err != nil {
-					form.StatusText.SetText(err.Error()).SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
-					return event
-				}
-
-			case actionEditConnection:
-				newDatabases = make([]models.Connection, len(databases))
-				row, _ := connectionsTable.GetSelection()
-
-				for i, database := range databases {
-					if i == row {
-						// Start from the existing connection so fields not
-						// present on the form (Commands, Username, Password,
-						// Hostname, Port, URLParams, Schemas, ...) are preserved.
-						updated := database
-						// An untouched ${env:...} URL keeps its template in the
-						// config file; its credentials already live elsewhere.
-						keepsTemplate := database.URL == parsedDatabaseData.URL && app.App.ConnectionUsesTemplate(database.Name)
-						updated.Name = parsedDatabaseData.Name
-						updated.Provider = parsedDatabaseData.Provider
-						updated.DBName = parsedDatabaseData.DBName
-						updated.URL = parsedDatabaseData.URL
-						updated.ReadOnly = parsedDatabaseData.ReadOnly
-						if !keepsTemplate {
-							keyringWarning = secureConnectionPassword(&updated)
-						}
-						newDatabases[i] = updated
-					} else {
-						newDatabases[i] = database
-					}
-				}
-
-				err := app.App.SaveConnections(newDatabases)
-				if err != nil {
-					form.StatusText.SetText(err.Error()).SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
-					return event
-
-				}
-			}
-
-			connectionsTable.SetConnections(newDatabases)
-			connectionPages.SwitchToPage(pageNameConnectionSelection)
-			if connectionSelection != nil {
-				connectionSelection.StatusText.SetText(keyringWarning).SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
-			}
-
-		} else if event.Key() == tcell.KeyF2 {
+			return nil
+		case 't':
 			connectionString := form.GetFormItem(1).(*tview.InputField).GetText()
 			go form.testConnection(connectionString, form.editedKeyringAccount())
+			return nil
 		}
-		return event
+		return vimFormNavigation(event)
 	}
+}
+
+// save stores the form as a new or edited connection and returns to the
+// connection list. It reports the saved connection.
+func (form *ConnectionForm) save(connectionPages *models.ConnectionPages) (models.Connection, bool) {
+	connectionName := form.GetFormItem(0).(*tview.InputField).GetText()
+
+	if connectionName == "" {
+		form.StatusText.SetText("Connection name is required").SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
+		return models.Connection{}, false
+	}
+
+	connectionString := form.GetFormItem(1).(*tview.InputField).GetText()
+
+	parsed, err := helpers.ParseConnectionString(connectionString)
+	if err != nil {
+		form.StatusText.SetText(err.Error()).SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
+		return models.Connection{}, false
+	}
+
+	databases := app.App.Connections()
+	newDatabases := make([]models.Connection, len(databases))
+
+	readOnly := form.GetFormItem(2).(*tview.Checkbox).IsChecked()
+	showAllDatabases := form.GetFormItem(3).(*tview.Checkbox).IsChecked()
+
+	// When the user opts in to browsing every database in the
+	// instance, force DBName empty so the tree's InitializeNodes
+	// falls back to GetDatabases() instead of pinning to whatever
+	// database happens to be embedded in the connection URL.
+	var DBName string
+	if !showAllDatabases {
+		DBName = strings.Split(parsed.Normalize(",", "NULL", 0), ",")[3]
+
+		if DBName == "NULL" {
+			DBName = ""
+		}
+	}
+
+	parsedDatabaseData := models.Connection{
+		Name:     connectionName,
+		Provider: parsed.Driver,
+		DBName:   DBName,
+		URL:      connectionString,
+		ReadOnly: readOnly,
+	}
+
+	var keyringWarning string
+
+	switch form.Action {
+	case actionNewConnection:
+
+		keyringWarning = secureConnectionPassword(&parsedDatabaseData)
+		newDatabases = append(databases, parsedDatabaseData)
+		err := app.App.SaveConnections(newDatabases)
+		if err != nil {
+			form.StatusText.SetText(err.Error()).SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
+			return models.Connection{}, false
+		}
+
+	case actionEditConnection:
+		newDatabases = make([]models.Connection, len(databases))
+		row, _ := connectionsTable.GetSelection()
+
+		for i, database := range databases {
+			if i == row {
+				// Start from the existing connection so fields not
+				// present on the form (Commands, Username, Password,
+				// Hostname, Port, URLParams, Schemas, ...) are preserved.
+				updated := database
+				// An untouched ${env:...} URL keeps its template in the
+				// config file; its credentials already live elsewhere.
+				keepsTemplate := database.URL == parsedDatabaseData.URL && app.App.ConnectionUsesTemplate(database.Name)
+				updated.Name = parsedDatabaseData.Name
+				updated.Provider = parsedDatabaseData.Provider
+				updated.DBName = parsedDatabaseData.DBName
+				updated.URL = parsedDatabaseData.URL
+				updated.ReadOnly = parsedDatabaseData.ReadOnly
+				if !keepsTemplate {
+					keyringWarning = secureConnectionPassword(&updated)
+				}
+				newDatabases[i] = updated
+			} else {
+				newDatabases[i] = database
+			}
+		}
+
+		err := app.App.SaveConnections(newDatabases)
+		if err != nil {
+			form.StatusText.SetText(err.Error()).SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
+			return models.Connection{}, false
+		}
+		if row >= 0 && row < len(newDatabases) {
+			parsedDatabaseData = newDatabases[row]
+		}
+	}
+
+	connectionsTable.SetConnections(newDatabases)
+	connectionPages.SwitchToPage(pageNameConnectionSelection)
+	if connectionSelection != nil {
+		connectionSelection.StatusText.SetText(keyringWarning).SetTextStyle(tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(app.Styles.PrimitiveBackgroundColor))
+	}
+	return parsedDatabaseData, true
 }
 
 // editedKeyringAccount returns the keyring account of the connection being
