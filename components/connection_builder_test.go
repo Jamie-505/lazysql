@@ -98,7 +98,7 @@ func TestEveryConnectionTypeBuildsAValidURLFromItsDefaults(t *testing.T) {
 			}
 
 			for _, mode := range append([]string{""}, selected.TLSModes...) {
-				if dropDown, ok := builder.Form.GetFormItemByLabel(selected.TLSLabel).(*tview.DropDown); ok && mode != "" {
+				if dropDown, ok := builder.Form.GetFormItemByLabel(selected.TLSLabel).(*focusDropDown); ok && mode != "" {
 					for index, option := range selected.TLSModes {
 						if option == mode {
 							dropDown.SetCurrentOption(index)
@@ -156,5 +156,33 @@ func TestConnectionTypePickerOffersEveryType(t *testing.T) {
 	handler(tcell.NewEventKey(tcell.KeyEscape, 0, tcell.ModNone), nil)
 	if !cancelled {
 		t.Fatal("Escape did not cancel the picker")
+	}
+}
+
+func TestFocusDropDownHighlightsWhenFocused(t *testing.T) {
+	screen := tcell.NewSimulationScreen("")
+	if err := screen.Init(); err != nil {
+		t.Fatal(err)
+	}
+	defer screen.Fini()
+	screen.SetSize(40, 1)
+
+	dropDown := newFocusDropDown("SSL", []string{"disable"})
+	dropDown.SetRect(0, 0, 40, 1)
+	fieldBackground := func() tcell.Color {
+		dropDown.Draw(screen)
+		_, _, style, _ := screen.GetContent(4, 0)
+		_, background, _ := style.Decompose()
+		return background
+	}
+
+	_, want, _ := builderFieldStyle().Decompose()
+	if got := fieldBackground(); got != want {
+		t.Errorf("unfocused background = %v, want %v", got, want)
+	}
+	dropDown.Focus(func(tview.Primitive) {})
+	_, want, _ = builderSelectedStyle().Decompose()
+	if got := fieldBackground(); got != want {
+		t.Errorf("focused background = %v, want %v", got, want)
 	}
 }

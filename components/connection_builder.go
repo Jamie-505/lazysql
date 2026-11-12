@@ -282,10 +282,7 @@ func (builder *ConnectionBuilder) SetType(selected connectionType) {
 		form.AddPasswordField(builderLabelPassword, "", 0, '*', nil)
 		form.AddInputField(builderLabelDatabase, "", 0, nil, nil)
 		if len(selected.TLSModes) > 0 {
-			form.AddDropDown(selected.TLSLabel, selected.TLSModes, 0, nil)
-			if dropDown, ok := form.GetFormItemByLabel(selected.TLSLabel).(*tview.DropDown); ok {
-				dropDown.SetListStyles(builderFieldStyle(), builderSelectedStyle())
-			}
+			form.AddFormItem(newFocusDropDown(selected.TLSLabel, selected.TLSModes))
 		}
 		if selected.VerifyLabel != "" {
 			form.AddCheckbox(selected.VerifyLabel, false, nil)
@@ -313,7 +310,7 @@ func (builder *ConnectionBuilder) Spec() connectionSpec {
 		Database: builder.inputText(builderLabelDatabase),
 		File:     builder.inputText(builderLabelFile),
 	}
-	if dropDown, ok := builder.Form.GetFormItemByLabel(builder.selected.TLSLabel).(*tview.DropDown); ok {
+	if dropDown, ok := builder.Form.GetFormItemByLabel(builder.selected.TLSLabel).(*focusDropDown); ok {
 		_, spec.TLS = dropDown.GetCurrentOption()
 	}
 	if checkbox, ok := builder.Form.GetFormItemByLabel(builder.selected.VerifyLabel).(*tview.Checkbox); ok {
@@ -330,6 +327,28 @@ func (builder *ConnectionBuilder) finish() {
 		return
 	}
 	builder.onDone(strings.TrimSpace(builder.inputText(builderLabelName)), connectionURL)
+}
+
+// focusDropDown is a drop-down whose field takes the selected style while it
+// has focus; tview's own drop-down looks the same focused or not.
+type focusDropDown struct {
+	*tview.DropDown
+}
+
+func newFocusDropDown(label string, options []string) *focusDropDown {
+	dropDown := tview.NewDropDown().SetLabel(label).SetOptions(options, nil).SetCurrentOption(0)
+	dropDown.SetListStyles(builderFieldStyle(), builderSelectedStyle())
+	return &focusDropDown{DropDown: dropDown}
+}
+
+func (d *focusDropDown) Draw(screen tcell.Screen) {
+	style := builderFieldStyle()
+	if d.HasFocus() {
+		style = builderSelectedStyle()
+	}
+	foreground, background, _ := style.Decompose()
+	d.SetFieldTextColor(foreground).SetFieldBackgroundColor(background)
+	d.DropDown.Draw(screen)
 }
 
 // styleConnectionForm gives a connection form the look of the rest of the
