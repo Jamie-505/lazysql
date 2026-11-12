@@ -8,8 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	// import postgresql driver
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 	"github.com/xo/dburl"
 
 	"github.com/jorgerojas26/lazysql/helpers/logger"
@@ -33,23 +32,25 @@ func (db *Postgres) Connect(ctx context.Context, urlstr string) error {
 	ctx = contextOrBackground(ctx)
 	db.SetProvider(DriverPostgres)
 
-	connection, err := dburl.Open(urlstr)
-	if err != nil {
-		return err
+	connection, err := db.openAndPing(ctx, urlstr)
+	if err != nil && isUndefinedDatabase(err) && !urlHasDatabase(urlstr) {
+		// Without a database in the URL, Postgres defaults to one named after
+		// the user, which often does not exist. Fall back to the maintenance
+		// database so the instance's databases can still be listed.
+		fallbackURL, buildErr := buildReconnectURL(urlstr, postgresMaintenanceDatabase)
+		if buildErr != nil {
+			return err
+		}
+		connection, err = db.openAndPing(ctx, fallbackURL)
+		if err == nil {
+			urlstr = fallbackURL
+		}
 	}
-
-	if err = applyConnectionPoolConfig(connection, db.PoolConfig); err != nil {
-		_ = connection.Close()
+	if err != nil {
 		return err
 	}
 
 	db.Connection = connection
-
-	err = db.Connection.PingContext(ctx)
-	if err != nil {
-		return err
-	}
-
 	db.Urlstr = urlstr
 
 	// Get the current database.
@@ -65,6 +66,41 @@ func (db *Postgres) Connect(ctx context.Context, urlstr string) error {
 	db.PreviousDatabase = database
 
 	return nil
+}
+
+const postgresMaintenanceDatabase = "postgres"
+
+// openAndPing opens a pooled connection to urlstr and verifies it.
+func (db *Postgres) openAndPing(ctx context.Context, urlstr string) (*sql.DB, error) {
+	connection, err := dburl.Open(urlstr)
+	if err != nil {
+		return nil, err
+	}
+	if err = applyConnectionPoolConfig(connection, db.PoolConfig); err != nil {
+		_ = connection.Close()
+		return nil, err
+	}
+	if err = connection.PingContext(ctx); err != nil {
+		_ = connection.Close()
+		return nil, err
+	}
+	return connection, nil
+}
+
+// isUndefinedDatabase reports whether err is Postgres' "database does not exist".
+func isUndefinedDatabase(err error) bool {
+	var pqErr *pq.Error
+	return errors.As(err, &pqErr) && pqErr.Code == "3D000"
+}
+
+// urlHasDatabase reports whether the connection URL names a database.
+func urlHasDatabase(urlstr string) bool {
+	parsed, err := dburl.Parse(urlstr)
+	if err != nil {
+		return true
+	}
+	name := strings.Split(parsed.Normalize(",", "NULL", 0), ",")[3]
+	return name != "" && name != "NULL"
 }
 
 func (db *Postgres) GetDatabases(ctx context.Context) ([]string, error) {

@@ -891,3 +891,21 @@ func TestPostgresDriverAcceptsEverySSLMode(t *testing.T) {
 		})
 	}
 }
+
+func TestURLHasDatabase(t *testing.T) {
+	tests := []struct {
+		urlstr string
+		want   bool
+	}{
+		{"postgres://user:pass@localhost:5432/mydb", true},
+		{"postgres://user:pass@localhost:5432/", false},
+		{"postgres://user:pass@localhost:5432", false},
+		{"postgres://user@localhost/mydb?sslmode=disable", true},
+		{"postgres://user@localhost?sslmode=disable", false},
+	}
+	for _, tt := range tests {
+		if got := urlHasDatabase(tt.urlstr); got != tt.want {
+			t.Errorf("urlHasDatabase(%q) = %v, want %v", tt.urlstr, got, tt.want)
+		}
+	}
+}
