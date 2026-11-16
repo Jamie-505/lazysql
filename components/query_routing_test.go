@@ -41,6 +41,11 @@ func TestQueryReturnsRowsQuotedTextAndComments(t *testing.T) {
 		{"unterminated comment", "/* returning", false},
 		{"unterminated string", "INSERT INTO users(name) VALUES ('returning", false},
 		{"unterminated dollar quote", "INSERT INTO users(name) VALUES ($tag$returning", false},
+		{"begin then returning", "BEGIN;\n\nUPDATE jobs SET state = 'x' RETURNING id;", true},
+		{"begin then plain update", "BEGIN; UPDATE jobs SET state = 'x';", false},
+		{"update then select", "UPDATE jobs SET state = 'x'; SELECT 1", true},
+		{"semicolon inside literal", "UPDATE jobs SET state = '; SELECT 1'", false},
+		{"commit alone", "COMMIT;", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

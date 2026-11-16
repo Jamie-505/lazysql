@@ -26,12 +26,21 @@ func sqlDialect(provider string) sqlformat.Dialect {
 
 // queryReturnsRows classifies editor queries, not their safety. Read-only
 // validation must still run independently before either execution path.
+// A multi-statement script returns rows when any of its statements does, so
+// "BEGIN; UPDATE ... RETURNING ..." shows the returned rows.
 func queryReturnsRows(query, provider string) bool {
-	tokens := sqlRoutingTokens(query, provider)
+	for _, tokens := range sqlRoutingStatements(query, provider) {
+		if statementReturnsRows(tokens) {
+			return true
+		}
+	}
+	return false
+}
+
+func statementReturnsRows(tokens []string) bool {
 	if len(tokens) == 0 {
 		return false
 	}
-
 	switch tokens[0] {
 	case "select", "with", "explain", "show", "describe", "desc", "values", "pragma":
 		return true
@@ -45,11 +54,38 @@ func queryReturnsRows(query, provider string) bool {
 	return false
 }
 
+// sqlRoutingStatements splits the routing tokens on unquoted semicolons.
+func sqlRoutingStatements(query, provider string) [][]string {
+	var statements [][]string
+	var current []string
+	for _, token := range sqlRoutingLexemes(query, provider) {
+		if token == ";" {
+			statements = append(statements, current)
+			current = nil
+			continue
+		}
+		current = append(current, token)
+	}
+	return append(statements, current)
+}
+
 // sqlRoutingTokens returns unquoted words for result-set routing. Comments and
 // quoted values/identifiers are skipped rather than stripped with regexes: a
 // comment marker inside a string is data, and quoted RETURNING is not a clause.
 // This is deliberately not a SQL parser or a read-only security check.
 func sqlRoutingTokens(query, provider string) []string {
+	var tokens []string
+	for _, token := range sqlRoutingLexemes(query, provider) {
+		if token != ";" {
+			tokens = append(tokens, token)
+		}
+	}
+	return tokens
+}
+
+// sqlRoutingLexemes is sqlRoutingTokens plus ";" for each unquoted statement
+// separator.
+func sqlRoutingLexemes(query, provider string) []string {
 	nestedComments := provider == drivers.DriverPostgres || provider == drivers.DriverMSSQL
 	bracketIdentifiers := provider == drivers.DriverSqlite || provider == drivers.DriverMSSQL
 	var tokens []string
@@ -127,6 +163,9 @@ func sqlRoutingTokens(query, provider string) []string {
 				i++
 			}
 			tokens = append(tokens, strings.ToLower(query[start:i]))
+		case query[i] == ';':
+			tokens = append(tokens, ";")
+			i++
 		default:
 			i++
 		}
