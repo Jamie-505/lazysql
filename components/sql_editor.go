@@ -394,6 +394,47 @@ func (e *SQLEditor) InputHandler() func(event *tcell.EventKey, setFocus func(p t
 	}
 }
 
+// PasteHandler inserts bracketed-paste text (e.g. Cmd+V) at the cursor.
+// Without it the embedded Box's no-op handler swallows pasted text.
+func (e *SQLEditor) PasteHandler() func(pastedText string, setFocus func(p tview.Primitive)) {
+	return func(pastedText string, _ func(p tview.Primitive)) {
+		if pastedText == "" {
+			return
+		}
+		e.acVisible = false
+		e.pushUndo()
+		e.insertText(pastedText)
+	}
+}
+
+// insertText inserts text at the cursor, splitting lines on newlines and
+// leaving the cursor after the inserted text.
+func (e *SQLEditor) insertText(text string) {
+	text = strings.ReplaceAll(text, "\r\n", "\n")
+	text = strings.ReplaceAll(text, "\r", "\n")
+	parts := strings.Split(text, "\n")
+
+	cx := min(e.cx, len(e.lines[e.cy]))
+	before, after := e.lines[e.cy][:cx], e.lines[e.cy][cx:]
+
+	if len(parts) == 1 {
+		e.lines[e.cy] = before + text + after
+		e.cx = cx + len(text)
+		return
+	}
+
+	last := len(parts) - 1
+	newLines := make([]string, 0, len(e.lines)+last)
+	newLines = append(newLines, e.lines[:e.cy]...)
+	newLines = append(newLines, before+parts[0])
+	newLines = append(newLines, parts[1:last]...)
+	newLines = append(newLines, parts[last]+after)
+	newLines = append(newLines, e.lines[e.cy+1:]...)
+	e.lines = newLines
+	e.cy += last
+	e.cx = len(parts[last])
+}
+
 // ---------------------------------------------------------------------------
 // Insert mode handling
 // ---------------------------------------------------------------------------
