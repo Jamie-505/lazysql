@@ -494,6 +494,13 @@ You can update the tree by pressing `R`, so you can see your newly created table
 > After executing a `SELECT`-query a table will be displayed under the SQL-Editor
 > with the query-result. \
 > To switch focus back to SQL-Editor press `/`
+>
+> The editor runs every query on one dedicated session per connection, so a
+> `BEGIN` stays open across runs until you execute `COMMIT` or `ROLLBACK`.
+> While it is open the editor status bar shows `TRANSACTION OPEN`, and
+> quitting asks for confirmation because the transaction will be rolled back.
+> (SQLite shares its single connection with the rest of the app; ClickHouse
+> transactions are experimental, so no open-transaction indicator is shown.)
 
 ### Format a query
 

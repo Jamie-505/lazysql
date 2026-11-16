@@ -309,6 +309,7 @@ func (table *ResultsTable) WithEditor() *ResultsTable {
 		table.SetIsEditing(false)
 	})
 
+	editor.SetTransactionStatus(table.editorTransactionOpen)
 	table.Editor = editor
 	editor.SetQueryCancelFunc(table.CancelActiveQuery)
 	editor.SetColumnCompletionLoader(table.requestEditorColumns)
@@ -1407,6 +1408,18 @@ func (table *ResultsTable) streamEditorQuery(ctx context.Context, run *editorQue
 		return table.renderEditorQueryBatch(ctx, run, batch)
 	}
 
+	if session, ok := table.DBDriver.(drivers.EditorSessionDriver); ok {
+		result, err := session.EditorStreamQuery(ctx, run.database, query, table.maxInteractiveQueryRows(), onBatch)
+		logDatabaseOperation(ctx, "stream_query", started, map[string]any{
+			"connection": table.connectionIdentifier,
+			"rows":       result.Rows,
+			"truncated":  result.Truncated,
+			"streaming":  true,
+			"session":    true,
+		}, err)
+		return result, err
+	}
+
 	if streamer, ok := table.DBDriver.(drivers.QueryStreamer); ok {
 		result, err := streamer.StreamQuery(ctx, run.database, query, table.maxInteractiveQueryRows(), onBatch)
 		logDatabaseOperation(ctx, "stream_query", started, map[string]any{
@@ -1549,7 +1562,13 @@ func (table *ResultsTable) runEditorDMLQuery(ctx context.Context, run *editorQue
 	}
 
 	table.addEditorQueryToHistory(query)
-	result, err := table.DBDriver.ExecuteDMLStatement(ctx, run.database, query)
+	var result string
+	var err error
+	if session, ok := table.DBDriver.(drivers.EditorSessionDriver); ok {
+		result, err = session.EditorExec(ctx, run.database, query)
+	} else {
+		result, err = table.DBDriver.ExecuteDMLStatement(ctx, run.database, query)
+	}
 	ddl := isSchemaMutatingQuery(query)
 	if err == nil && ddl {
 		if table.Home != nil {
@@ -1580,19 +1599,19 @@ func (table *ResultsTable) runEditorDMLQuery(ctx context.Context, run *editorQue
 			return
 		}
 
-		table.SetResultsInfo(result)
+		elapsed := time.Since(run.started).Milliseconds()
+		info := fmt.Sprintf("%s · %dms", result, elapsed)
+		if table.editorTransactionOpen() {
+			info += " · transaction open, not committed (COMMIT or ROLLBACK)"
+		}
+		table.SetResultsInfo(info)
 		table.SetQueryStatus("")
 		table.SetLoading(false)
-		// Clear filtering state before closing the quit confirmation: closing it
-		// can synchronously trigger Home.focusTab, which re-focuses the editor
-		// while filtering is still active.
-		table.SetIsFiltering(false)
 		closeQuitConfirmation()
-		table.HighlightTable()
-		table.Editor.SetBlur()
-		table.SetInputCapture(table.tableInputCapture)
-		table.EditorPages.SwitchToPage(pageNameTableEditorTable)
-		App.SetFocus(table)
+		// DML has no result grid: show the rows-affected panel and keep the
+		// editor focused so the statement can be adjusted and re-run.
+		table.EditorPages.SwitchToPage(pageNameTableEditorResultsInfo)
+		App.SetFocus(table.Editor)
 
 		// Arbitrary editor DML has no reliable table identity, so it must not
 		// refresh whichever Records table happens to be open. Successful DDL
@@ -1803,6 +1822,13 @@ func (table *ResultsTable) SetError(err string, done func()) {
 	table.Page.ShowPage(pageNameTableError)
 	App.SetFocus(table.Error)
 	App.ForceDraw()
+}
+
+// editorTransactionOpen reports whether the editor's reserved session is
+// inside an uncommitted transaction.
+func (table *ResultsTable) editorTransactionOpen() bool {
+	session, ok := table.DBDriver.(drivers.EditorSessionDriver)
+	return ok && session.EditorTransactionOpen()
 }
 
 func (table *ResultsTable) SetResultsInfo(text string) {

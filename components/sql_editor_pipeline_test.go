@@ -277,6 +277,30 @@ func TestEditorDMLDoesNotRefreshSelectedTable(t *testing.T) {
 	}
 }
 
+func TestEditorDMLShowsRowsAffectedPanel(t *testing.T) {
+	driver := &editorDMLNoRefreshDriver{dmlDone: make(chan struct{})}
+	table, editor, pages := newEditorPipelineTable(driver)
+	table.ResultsInfo = tview.NewTextView()
+	table.EditorPages.AddPage(pageNameTableEditorResultsInfo, table.ResultsInfo, true, false)
+	appDone := startEditorPipeline(t, table, editor, pages)
+	defer stopEditorPipeline(t, appDone, table)
+
+	editor.Publish(eventSQLEditorQuery, "UPDATE orders SET id = 2")
+	<-driver.dmlDone
+
+	var front, text string
+	waitFor(t, func() bool {
+		App.QueueUpdate(func() {
+			front, _ = table.EditorPages.GetFrontPage()
+			text = table.ResultsInfo.GetText(true)
+		})
+		return front == pageNameTableEditorResultsInfo && strings.Contains(text, "updated")
+	})
+	if !strings.Contains(text, "ms") {
+		t.Fatalf("results info %q lacks elapsed time", text)
+	}
+}
+
 func TestEditorStreamRendersFirstBatchBeforeStreamCompletes(t *testing.T) {
 	driver := newBlockingEditorStreamDriver()
 	table, editor, pages := newEditorPipelineTable(driver)
@@ -483,5 +507,58 @@ func TestEditorStreamAndExportKeepCapturedDatabase(t *testing.T) {
 	defer driver.mu.Unlock()
 	if driver.streamDatabase != "chosen" {
 		t.Fatalf("export targeted %q instead of the original query database", driver.streamDatabase)
+	}
+}
+
+type editorSessionFakeDriver struct {
+	editorDMLNoRefreshDriver
+	execQueries chan string
+}
+
+func (driver *editorSessionFakeDriver) EditorStreamQuery(context.Context, string, string, int, func(drivers.QueryBatch) error) (drivers.QueryStreamResult, error) {
+	return drivers.QueryStreamResult{}, nil
+}
+
+func (driver *editorSessionFakeDriver) EditorExec(_ context.Context, _ string, query string) (string, error) {
+	driver.execQueries <- query
+	return "2 rows affected", nil
+}
+
+func (driver *editorSessionFakeDriver) EditorTransactionOpen() bool { return true }
+func (driver *editorSessionFakeDriver) CloseEditorSession() error   { return nil }
+
+func TestEditorDMLUsesSessionAndFlagsOpenTransaction(t *testing.T) {
+	driver := &editorSessionFakeDriver{
+		editorDMLNoRefreshDriver: editorDMLNoRefreshDriver{dmlDone: make(chan struct{})},
+		execQueries:              make(chan string, 1),
+	}
+	table, editor, pages := newEditorPipelineTable(driver)
+	table.ResultsInfo = tview.NewTextView()
+	table.EditorPages.AddPage(pageNameTableEditorResultsInfo, table.ResultsInfo, true, false)
+	appDone := startEditorPipeline(t, table, editor, pages)
+	defer stopEditorPipeline(t, appDone, table)
+
+	editor.Publish(eventSQLEditorQuery, "BEGIN; UPDATE orders SET id = 2")
+	select {
+	case got := <-driver.execQueries:
+		if got != "BEGIN; UPDATE orders SET id = 2" {
+			t.Fatalf("session exec query = %q", got)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("DML did not run on the editor session")
+	}
+
+	var text string
+	waitFor(t, func() bool {
+		App.QueueUpdate(func() { text = table.ResultsInfo.GetText(true) })
+		return strings.Contains(text, "2 rows affected")
+	})
+	if !strings.Contains(text, "not committed") {
+		t.Fatalf("results info %q does not flag the open transaction", text)
+	}
+	select {
+	case <-driver.dmlDone:
+		t.Fatal("pooled ExecuteDMLStatement ran instead of the session")
+	default:
 	}
 }

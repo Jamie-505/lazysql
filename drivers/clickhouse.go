@@ -1128,17 +1128,19 @@ func (db *ClickHouse) GetExactRowCount(ctx context.Context, database, table, whe
 	return count, err
 }
 func (db *ClickHouse) StreamQuery(ctx context.Context, _, query string, maxRows int, onBatch func(QueryBatch) error) (QueryStreamResult, error) {
-	return streamQueryWithScanner(ctx, db.Connection, query, maxRows, onBatch, func(rows *sql.Rows, _ int) ([]string, error) {
-		types, err := rows.ColumnTypes()
-		if err != nil {
-			return nil, err
+	return streamQueryWithScanner(ctx, db.Connection, query, maxRows, onBatch, scanClickHouseStreamRow)
+}
+
+func scanClickHouseStreamRow(rows *sql.Rows, _ int) ([]string, error) {
+	types, err := rows.ColumnTypes()
+	if err != nil {
+		return nil, err
+	}
+	values, nulls, err := scanClickHouseRow(rows, types)
+	for i := range values {
+		if nulls[i] {
+			values[i] = "NULL"
 		}
-		values, nulls, err := scanClickHouseRow(rows, types)
-		for i := range values {
-			if nulls[i] {
-				values[i] = "NULL"
-			}
-		}
-		return values, err
-	})
+	}
+	return values, err
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/rivo/tview"
 
 	"github.com/jorgerojas26/lazysql/app"
+	"github.com/jorgerojas26/lazysql/drivers"
 )
 
 var (
@@ -14,7 +15,9 @@ var (
 )
 
 func showQuitConfirmation() {
-	if !app.App.Config().ConfirmOnQuit {
+	// An open editor transaction is rolled back on exit, so always confirm.
+	transactionOpen := drivers.EditorTransactionsOpen()
+	if !app.App.Config().ConfirmOnQuit && !transactionOpen {
 		app.App.Stop()
 		return
 	}
@@ -33,7 +36,11 @@ func showQuitConfirmation() {
 		return
 	}
 
-	confirmationModal := NewConfirmationModal("Exit LazySQL?")
+	message := "Exit LazySQL?"
+	if transactionOpen {
+		message = "Exit LazySQL? An open editor transaction will be rolled back."
+	}
+	confirmationModal := NewConfirmationModal(message)
 	quitConfirmationModal = confirmationModal
 	confirmationModal.SetDoneFunc(func(_ int, buttonLabel string) {
 		mainPages.RemovePage(pageNameConfirmation)

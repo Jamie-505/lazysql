@@ -88,6 +88,9 @@ type SQLEditor struct {
 	leaderAt    time.Time
 	leaderDelay time.Duration
 
+	// --- transaction indicator ---
+	transactionOpen func() bool
+
 	// --- yank / paste ---
 	yankText string
 
@@ -392,6 +395,16 @@ func (e *SQLEditor) InputHandler() func(event *tcell.EventKey, setFocus func(p t
 			e.handleVisualMode(event)
 		}
 	}
+}
+
+// transactionIndicator is shown in the status bar while the editor session
+// holds an uncommitted transaction.
+const transactionIndicator = "TRANSACTION OPEN — COMMIT or ROLLBACK"
+
+// SetTransactionStatus installs the check the status bar uses to show that
+// the editor session holds an open transaction.
+func (e *SQLEditor) SetTransactionStatus(open func() bool) {
+	e.transactionOpen = open
 }
 
 // PasteHandler inserts bracketed-paste text (e.g. Cmd+V) at the cursor.
@@ -1539,6 +1552,19 @@ func (e *SQLEditor) drawStatusBar(screen tcell.Screen, x, y, width int, _, _ tce
 		}
 		style := tcell.StyleDefault.Foreground(statusFg).Background(statusBg)
 		screen.SetContent(x+i, y, ch, nil, style)
+	}
+
+	// Draw the open-transaction warning after the mode
+	if e.transactionOpen != nil && e.transactionOpen() {
+		col := len(modeText) + 2
+		style := tcell.StyleDefault.Foreground(app.Styles.ErrorColor).Background(statusBg).Bold(true)
+		for _, ch := range transactionIndicator {
+			if col >= width {
+				break
+			}
+			screen.SetContent(x+col, y, ch, nil, style)
+			col++
+		}
 	}
 
 	// Draw position text (right-aligned)
