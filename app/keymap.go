@@ -165,7 +165,7 @@ var Keymaps = KeymapSystem{
 		EditorGroup: {
 			Bind{Key: Key{Code: tcell.KeyCtrlR}, Cmd: cmd.Execute, Description: "Execute query"},
 			Bind{Key: Key{Code: tcell.KeyEscape}, Cmd: cmd.CancelQuery, Description: "Cancel active query; otherwise unfocus editor"},
-			Bind{Key: Key{Code: tcell.KeyCtrlSpace}, Cmd: cmd.OpenInExternalEditor, Description: "Open in external editor"},
+			Bind{Key: Key{Code: tcell.KeyCtrlG}, Cmd: cmd.OpenInExternalEditor, Description: "Open in external editor"},
 			Bind{Key: Key{Code: tcell.KeyCtrlX}, Cmd: cmd.ExplainQuery, Description: "Explain query (plan viewer)"},
 			Bind{Key: Key{Code: tcell.KeyCtrlF}, Cmd: cmd.FormatQuery, Description: "Format query"},
 		},

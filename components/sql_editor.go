@@ -299,7 +299,7 @@ func (e *SQLEditor) formatText() {
 // InputHandler returns the event handler for this widget.
 func (e *SQLEditor) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
 	return func(event *tcell.EventKey, _ func(p tview.Primitive)) {
-		// --- 1. Always handle open-in-external-editor (Ctrl+Space) ---
+		// --- 1. Always handle open-in-external-editor (Ctrl+G) ---
 		cmd := app.Keymaps.Group(app.EditorGroup).Resolve(event)
 		if (event.Key() == tcell.KeyEscape || cmd == commands.CancelQuery) && e.cancelQuery != nil && e.cancelQuery() {
 			return

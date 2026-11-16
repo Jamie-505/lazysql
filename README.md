@@ -965,7 +965,7 @@ Available groups: `Home`, `Connection`, `Tree`, `TreeFilter`, `Table`, `Editor`,
 | --- | --- | --- |
 | Ctrl-R | Execute | Execute query |
 | Esc | CancelQuery | Cancel the active query; otherwise preserve normal editor Escape behavior |
-| Ctrl-Space | OpenInExternalEditor | Open in external editor |
+| Ctrl-G | OpenInExternalEditor | Open in external editor |
 | Ctrl-X | ExplainQuery | Explain query (plan viewer) |
 | Ctrl-F | FormatQuery | Format query |
 
